@@ -4,19 +4,55 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { IconChevronRight } from "@/components/library/LibraryIcons";
+import {
+  IconCheck,
+  IconChevronRight,
+} from "@/components/library/LibraryIcons";
 import {
   formatArticleRenameError,
   useActiveArticle,
+  type ArticleContentSaveStatus,
 } from "@/components/providers/ActiveArticleContext";
 import { useLibraryPaneUi } from "@/components/providers/LibraryPaneUiContext";
 import { ROUTES } from "@/constants/routes";
 import { Input } from "@/ui/Input";
+import { Spinner } from "@/ui/Spinner";
 
 import { SettingsMenu } from "./SettingsMenu";
 
 const ARTICLE_PATH_UUID_RE =
   /^\/([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
+
+function ArticleSaveIndicator({ status }: { status: ArticleContentSaveStatus }) {
+  if (status === "saving") {
+    return (
+      <span
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Saving"
+      >
+        <Spinner
+          className="!size-2.5 !border !border-border !border-t-accent"
+          label="Saving"
+        />
+      </span>
+    );
+  }
+  if (status === "saved") {
+    return (
+      <span
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-emerald-600 dark:text-emerald-400"
+        role="status"
+        aria-live="polite"
+        aria-label="Saved"
+      >
+        <IconCheck className="size-3.5" />
+      </span>
+    );
+  }
+  return null;
+}
 
 function ArticleTitleChip({
   articleId,
@@ -131,7 +167,7 @@ function ArticleTitleChip({
 
 export function AppHeader() {
   const pathname = usePathname() ?? "";
-  const { snapshot } = useActiveArticle();
+  const { snapshot, contentSaveStatus } = useActiveArticle();
   const { libraryCollapsed, expandLibrary } = useLibraryPaneUi();
 
   const pathMatch = pathname.match(ARTICLE_PATH_UUID_RE);
@@ -175,7 +211,10 @@ export function AppHeader() {
             </>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center">
+        <div className="flex shrink-0 items-center gap-1">
+          {showTitleChip ? (
+            <ArticleSaveIndicator status={contentSaveStatus} />
+          ) : null}
           <SettingsMenu showSignOut />
         </div>
       </div>

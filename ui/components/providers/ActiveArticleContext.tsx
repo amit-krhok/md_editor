@@ -8,7 +8,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 
 import { updateArticle as updateArticleRequest } from "@/lib/api/articles";
@@ -16,6 +18,8 @@ import { ApiError } from "@/lib/api/http";
 import { useAuthStore } from "@/stores/store-context";
 
 export type ActiveArticleSnapshot = { id: string; title: string };
+
+export type ArticleContentSaveStatus = "idle" | "saving" | "saved";
 
 type Ctx = {
   snapshot: ActiveArticleSnapshot | null;
@@ -26,6 +30,8 @@ type Ctx = {
     articleId: string,
     title: string,
   ) => Promise<{ title: string }>;
+  contentSaveStatus: ArticleContentSaveStatus;
+  setContentSaveStatus: Dispatch<SetStateAction<ArticleContentSaveStatus>>;
 };
 
 const ActiveArticleContext = createContext<Ctx | null>(null);
@@ -38,6 +44,8 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
   const auth = useAuthStore();
   const token = auth.token;
   const [snapshot, setSnapshot] = useState<ActiveArticleSnapshot | null>(null);
+  const [contentSaveStatus, setContentSaveStatus] =
+    useState<ArticleContentSaveStatus>("idle");
   const syncLibraryTitles = useRef<(id: string, title: string) => void>(() => {});
 
   const patchArticleTitle = useCallback(
@@ -67,8 +75,10 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
       setSnapshot,
       syncLibraryTitles,
       patchArticleTitle,
+      contentSaveStatus,
+      setContentSaveStatus,
     }),
-    [snapshot, patchArticleTitle],
+    [snapshot, patchArticleTitle, contentSaveStatus],
   );
 
   return (
