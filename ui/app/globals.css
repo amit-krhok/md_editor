@@ -14,6 +14,9 @@
   --accent-hover: #4338ca;
   /* Text on accent-filled controls (avoid palette `white` — Tailwind v4 theme may omit it). */
   --on-accent: #fafafa;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --on-danger: #fafafa;
 }
 
 .dark {
@@ -26,6 +29,9 @@
   --accent: #818cf8;
   --accent-hover: #a5b4fc;
   --on-accent: #0c0a09;
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+  --on-danger: #0c0a09;
 }
 
 @theme inline {
@@ -38,6 +44,9 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-on-danger: var(--on-danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --radius-md: 0.5rem;
@@ -118,7 +127,8 @@ button.app-btn.app-btn--secondary:focus-visible {
 
 button.app-btn.app-btn--ghost {
   background-color: transparent !important;
-  color: var(--muted) !important;
+  /* Foreground (not muted): muted + preflight/utilities often made label + icon effectively invisible. */
+  color: var(--foreground) !important;
   border: 1px solid transparent !important;
 }
 
@@ -130,4 +140,129 @@ button.app-btn.app-btn--ghost:hover:not(:disabled) {
 button.app-btn.app-btn--ghost:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
   outline-offset: 2px;
+}
+
+/*
+ * Stroked outline icons: `stroke="currentColor"` must resolve; force stroke so Tailwind or
+ * load order cannot leave icons the same as the elevated surface.
+ */
+button.app-btn.app-btn--ghost svg {
+  stroke: var(--foreground) !important;
+  color: var(--foreground) !important;
+}
+
+/* Optional marker for icon-only sizing; color same as ghost above. */
+button.app-btn.app-btn--ghost.app-btn--icon {
+  color: var(--foreground) !important;
+}
+
+button.app-btn.app-btn--danger {
+  background-color: var(--danger) !important;
+  color: var(--on-danger) !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+button.app-btn.app-btn--danger:hover:not(:disabled) {
+  background-color: var(--danger-hover) !important;
+}
+
+button.app-btn.app-btn--danger:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+/*
+ * Library pane header: native toolbar buttons (not app-btn).
+ * Isolated from utility / app-btn ordering so chevron + plus stay visible.
+ */
+button.library-toolbar-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: var(--foreground);
+}
+
+button.library-toolbar-btn:hover {
+  background-color: color-mix(in srgb, var(--muted) 14%, transparent);
+}
+
+button.library-toolbar-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  outline-offset: 2px;
+}
+
+button.library-toolbar-btn svg {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: var(--foreground);
+  stroke: var(--foreground);
+}
+
+button.library-toolbar-btn svg path,
+button.library-toolbar-btn svg circle,
+button.library-toolbar-btn svg line,
+button.library-toolbar-btn svg polyline {
+  stroke: var(--foreground);
+  vector-effect: non-scaling-stroke;
+}
+
+/* Floating control to reopen hidden library pane */
+button.library-fab {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  margin: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--surface-elevated);
+  cursor: pointer;
+  font: inherit;
+  color: var(--foreground);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 2px 8px rgb(0 0 0 / 0.07);
+}
+
+button.library-fab:hover {
+  background-color: color-mix(in srgb, var(--muted) 10%, var(--surface-elevated));
+}
+
+button.library-fab:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  outline-offset: 2px;
+}
+
+button.library-fab svg {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--foreground);
+  stroke: var(--foreground);
+}
+
+button.library-fab svg path,
+button.library-fab svg circle,
+button.library-fab svg line,
+button.library-fab svg polyline {
+  stroke: var(--foreground);
+  vector-effect: non-scaling-stroke;
 }
