@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { LibraryPane } from "@/components/library/LibraryPane";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { ActiveArticleProvider } from "@/components/providers/ActiveArticleContext";
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   return (
     <AuthGuard>
+      <ActiveArticleProvider>
       <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-surface">
         <AppHeader />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
@@ -16,6 +18,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
+      </ActiveArticleProvider>
     </AuthGuard>
   );
 }

@@ -40,6 +40,19 @@ export async function getArticle(
   return apiJson<ArticlePublic>(`/articles/${articleId}`, { token });
 }
 
+export async function updateArticle(
+  token: string,
+  articleId: string,
+  body: { title?: string; content?: string },
+): Promise<ArticlePublic> {
+  return apiJson<ArticlePublic>(`/articles/${articleId}`, {
+    method: "PATCH",
+    token,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function deleteArticle(
   token: string,
   articleId: string,

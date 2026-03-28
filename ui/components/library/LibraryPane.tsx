@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
+import { useActiveArticle } from "@/components/providers/ActiveArticleContext";
 import {
   createArticle,
   deleteArticle,
@@ -34,6 +35,7 @@ export const LibraryPane = observer(function LibraryPane() {
   const token = auth.token;
   const router = useRouter();
   const pathname = usePathname();
+  const { syncLibraryTitles } = useActiveArticle();
 
   const [collapsed, setCollapsed] = useState(false);
   const [creatingFolder, setCreatingFolder] = useState(false);
@@ -92,6 +94,26 @@ export const LibraryPane = observer(function LibraryPane() {
     void loadLibrary();
   }, [loadLibrary]);
 
+  useEffect(() => {
+    syncLibraryTitles.current = (id, title) => {
+      setArticles((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, title } : a)),
+      );
+      setFolderArticles((prev) => {
+        const next = { ...prev };
+        for (const key of Object.keys(next)) {
+          next[key] = next[key].map((a) =>
+            a.id === id ? { ...a, title } : a,
+          );
+        }
+        return next;
+      });
+    };
+    return () => {
+      syncLibraryTitles.current = () => {};
+    };
+  }, [syncLibraryTitles]);
+
   const ensureFolderArticlesLoaded = useCallback(
     async (folderId: string) => {
       if (!token) return;
@@ -131,9 +153,11 @@ export const LibraryPane = observer(function LibraryPane() {
     setCreateBusy(true);
     setCreateError(null);
     try {
-      await createFolder(token, name);
+      const created = await createFolder(token, name);
       setCreatingFolder(false);
-      await loadLibrary();
+      setFolders((prev) =>
+        [...prev, created].sort((a, b) => a.name.localeCompare(b.name)),
+      );
     } catch (e) {
       const message =
         e instanceof ApiError

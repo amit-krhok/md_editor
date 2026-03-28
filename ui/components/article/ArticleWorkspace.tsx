@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { getArticle } from "@/lib/api/articles";
 import { ApiError } from "@/lib/api/http";
+import { useActiveArticle } from "@/components/providers/ActiveArticleContext";
 import { useAuthStore } from "@/stores/store-context";
 import type { ArticlePublic } from "@/types/article.types";
 import { Spinner } from "@/ui/Spinner";
@@ -18,6 +19,7 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
 }: Props) {
   const auth = useAuthStore();
   const token = auth.token;
+  const { snapshot, setSnapshot } = useActiveArticle();
   const [article, setArticle] = useState<ArticlePublic | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setArticle(null);
     void (async () => {
       try {
         const a = await getArticle(token, articleId);
@@ -54,6 +57,33 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
     };
   }, [token, articleId]);
 
+  useEffect(() => {
+    return () => {
+      setSnapshot(null);
+    };
+  }, [articleId, setSnapshot]);
+
+  useEffect(() => {
+    if (!article || article.id !== articleId) return;
+    setSnapshot({ id: article.id, title: article.title });
+  }, [article, articleId, setSnapshot]);
+
+  useEffect(() => {
+    if (snapshot == null || snapshot.id !== articleId) return;
+    setArticle((a) => {
+      if (!a || a.id !== snapshot.id) return a;
+      if (a.title === snapshot.title) return a;
+      return { ...a, title: snapshot.title };
+    });
+  }, [articleId, snapshot]);
+
+  const displayTitle =
+    article != null &&
+    snapshot != null &&
+    snapshot.id === article.id
+      ? snapshot.title
+      : (article?.title ?? "");
+
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center py-16">
@@ -73,7 +103,7 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 py-6">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        {article.title}
+        {displayTitle}
       </h1>
       <div className="min-h-[12rem] flex-1 rounded-lg border border-border bg-surface-elevated/50 p-4">
         {article.content ? (
