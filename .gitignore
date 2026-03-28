@@ -10,3 +10,4 @@ __pycache__
 *.info
 *.debug
 logs/
+docker-compose.local.yml
