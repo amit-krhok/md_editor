@@ -1,0 +1,81 @@
+# Copy to zz-https.local.conf (gitignored) and add "443:443" under nginx ports in docker-compose.
+# Mount real certs under ./certs (or MD_EDITOR_CERT_DIR) as /etc/md_editor/certs in the container.
+#
+# After enabling, set NEXT_PUBLIC_API_URL=https://YOUR_HOST/api when building the UI image.
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name localhost;
+
+    ssl_certificate     /etc/md_editor/certs/fullchain.pem;
+    ssl_certificate_key /etc/md_editor/certs/privatekey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_ciphers 'EECDH+AESGCM:EECDH+CHACHA20:HIGH:!aNULL:!MD5';
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_session_tickets off;
+
+    # OCSP stapling needs a public CA + valid resolver; leave off for self-signed / local certs.
+    # ssl_stapling on;
+    # ssl_stapling_verify on;
+    # resolver 1.1.1.1 valid=300s;
+
+    client_max_body_size 10M;
+    client_body_timeout 30s;
+
+    proxy_connect_timeout 60s;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Permissions-Policy "geolocation=(), microphone=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;
+    add_header X-Frame-Options "DENY" always;
+    server_tokens off;
+
+    if ($http_x_original_url ~* ".+") {
+        return 403;
+    }
+    if ($http_x_rewrite_url ~* ".+") {
+        return 403;
+    }
+
+    location = /robots.txt {
+        add_header Content-Security-Policy "default-src 'self'" always;
+        default_type text/plain;
+        return 200 "User-agent: *\nDisallow:\n";
+    }
+
+    location = /sitemap.xml {
+        add_header Content-Security-Policy "default-src 'self'" always;
+        default_type application/xml;
+        return 200 '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
+    }
+
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Origin "";
+        proxy_http_version 1.1;
+        proxy_pass http://md_editor_api/;
+    }
+
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_pass http://md_editor_ui;
+    }
+}

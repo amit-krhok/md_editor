@@ -11,3 +11,8 @@ __pycache__
 *.debug
 logs/
 docker-compose.local.yml
+
+
+certs/*
+!certs/.gitkeep
+nginx/conf.d/*.local.conf
