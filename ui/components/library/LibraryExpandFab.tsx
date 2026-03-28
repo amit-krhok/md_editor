@@ -20,7 +20,7 @@ export function LibraryExpandFab({ onExpand }: Props) {
       type="button"
       className="library-fab fixed z-[90]"
       style={{
-        top: "calc(env(safe-area-inset-top, 0px) + 2.5rem + 0.5rem)",
+        top: "calc(env(safe-area-inset-top, 0px) + 2rem + 0.5rem)",
         left: "max(0.5rem, env(safe-area-inset-left, 0px))",
       }}
       aria-label="Show library"

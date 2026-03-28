@@ -87,11 +87,11 @@ function ArticleTitleChip({
   return renaming ? (
     <div
       ref={editContainerRef}
-      className="flex min-w-0 flex-1 flex-col gap-1"
+      className="flex min-w-0 flex-1 flex-col gap-0.5"
     >
       <Input
         ref={inputRef}
-        className="h-8 max-w-md py-1 font-mono text-xs"
+        className="h-7 max-w-md py-0.5 font-mono text-xs leading-tight"
         value={draft}
         disabled={submitting}
         aria-label="File name"
@@ -113,7 +113,7 @@ function ArticleTitleChip({
     </div>
   ) : (
     <code
-      className="max-w-[min(100%,24rem)] cursor-default truncate rounded border border-border bg-surface px-2 py-0.5 font-mono text-xs text-foreground"
+      className="max-w-[min(100%,24rem)] cursor-default truncate rounded border border-border bg-surface px-1.5 py-px font-mono text-xs leading-tight text-foreground"
       title="Double-click to rename"
       onDoubleClick={(e) => {
         e.preventDefault();
@@ -140,11 +140,11 @@ export function AppHeader() {
 
   return (
     <header className="border-b border-border bg-surface-elevated/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-10 items-center justify-between gap-4 px-[length:var(--spacing-page)]">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="mx-auto flex h-8 items-center justify-between gap-3 px-[length:var(--spacing-page)] py-0">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <Link
             href={ROUTES.home}
-            className="shrink-0 text-sm font-semibold tracking-tight text-foreground"
+            className="shrink-0 text-xs font-semibold leading-none tracking-tight text-foreground"
           >
             MD Editor
           </Link>

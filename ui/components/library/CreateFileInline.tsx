@@ -20,9 +20,10 @@ export function CreateFileInline({
   const [value, setValue] = useState("");
 
   return (
-    <div className="border-b border-border px-2 py-2">
+    <div className="border-b border-border px-2 py-1.5">
       <Input
         autoFocus
+        className="h-7 py-0.5 text-xs leading-tight"
         placeholder="File name"
         value={value}
         disabled={disabled}
@@ -41,7 +42,7 @@ export function CreateFileInline({
         }}
       />
       {error ? (
-        <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
       ) : null}
     </div>
   );

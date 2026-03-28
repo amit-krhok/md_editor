@@ -21,7 +21,7 @@ export function LibraryPaneHeader({
   onStartCreateFile,
 }: Props) {
   return (
-    <div className="flex h-10 shrink-0 items-center gap-0.5 border-b border-border px-1">
+    <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1 py-0">
       <button
         type="button"
         className="library-toolbar-btn"

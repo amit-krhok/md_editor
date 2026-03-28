@@ -300,10 +300,10 @@ export const LibraryPane = observer(function LibraryPane() {
               error={createFileError}
             />
           ) : null}
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-2">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-1">
             {loading ? (
-              <div className="flex justify-center py-8">
-                <Spinner className="size-6" />
+              <div className="flex justify-center py-6">
+                <Spinner className="size-5" />
               </div>
             ) : loadError ? (
               <p className="px-2 text-sm text-red-600 dark:text-red-400">
@@ -314,7 +314,7 @@ export const LibraryPane = observer(function LibraryPane() {
                 No articles or folders yet.
               </p>
             ) : (
-              <ul className="space-y-0.5">
+              <ul className="space-y-0">
                 {articles.map((article) => (
                   <li key={article.id}>
                     <ArticleRow
@@ -341,7 +341,7 @@ export const LibraryPane = observer(function LibraryPane() {
                       onRename={handleRenameFolder}
                     />
                     {expandedFolderIds.has(folder.id) ? (
-                      <ul className="ml-4 border-l border-border py-0.5 pl-2">
+                      <ul className="ml-3 border-l border-border py-0 pl-1.5">
                         {createFileContext?.folderId === folder.id ? (
                           <li className="list-none">
                             <CreateFileInline
@@ -357,8 +357,8 @@ export const LibraryPane = observer(function LibraryPane() {
                           </li>
                         ) : null}
                         {loadingFolderId === folder.id ? (
-                          <li className="flex justify-center py-3">
-                            <Spinner className="size-5" />
+                          <li className="flex justify-center py-2">
+                            <Spinner className="size-4" />
                           </li>
                         ) : (
                           (folderArticles[folder.id] ?? []).map((article) => (
