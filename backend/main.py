@@ -10,6 +10,8 @@ from sqlalchemy import text
 from starlette.requests import Request
 
 from core import config
+from core.articles.exceptions import ArticleNotFoundError
+from core.folders.exceptions import FolderNameTakenError, FolderNotFoundError
 from core.users.exceptions import (
     InactiveUserError,
     IncorrectCurrentPasswordError,
@@ -18,7 +20,9 @@ from core.users.exceptions import (
     WeakPasswordError,
 )
 from database import engine
+from views.articles import router as articles_router
 from views.authentications import router as auth_router
+from views.folders import router as folders_router
 from views.users import router as users_router
 
 app = FastAPI(title="md_editor API")
@@ -27,6 +31,8 @@ log = logging.getLogger("md_editor.api")
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(folders_router)
+app.include_router(articles_router)
 
 
 @app.exception_handler(UserAlreadyExistsError)
@@ -77,6 +83,36 @@ async def incorrect_current_password_handler(
     return JSONResponse(
         status_code=401,
         content={"detail": "Current password is incorrect"},
+    )
+
+
+@app.exception_handler(FolderNotFoundError)
+async def folder_not_found_handler(
+    _request: Request, _exc: FolderNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Folder not found"},
+    )
+
+
+@app.exception_handler(FolderNameTakenError)
+async def folder_name_taken_handler(
+    _request: Request, _exc: FolderNameTakenError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={"detail": "A folder with this name already exists"},
+    )
+
+
+@app.exception_handler(ArticleNotFoundError)
+async def article_not_found_handler(
+    _request: Request, _exc: ArticleNotFoundError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Article not found"},
     )
 
 
