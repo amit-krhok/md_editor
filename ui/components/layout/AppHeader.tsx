@@ -42,12 +42,12 @@ function ArticleSaveIndicator({ status }: { status: ArticleContentSaveStatus }) 
   if (status === "saved") {
     return (
       <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-emerald-600 dark:text-emerald-400"
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-emerald-600 dark:text-emerald-400"
         role="status"
         aria-live="polite"
         aria-label="Saved"
       >
-        <IconCheck className="size-3.5" />
+        <IconCheck className="size-3" />
       </span>
     );
   }
@@ -125,11 +125,11 @@ function ArticleTitleChip({
   return renaming ? (
     <div
       ref={editContainerRef}
-      className="flex min-w-0 flex-1 flex-col gap-0.5"
+      className="relative flex min-h-0 min-w-0 max-h-8 flex-1 items-center"
     >
       <Input
         ref={inputRef}
-        className="h-7 max-w-md py-0.5 font-mono text-xs leading-tight"
+        className="max-h-7 min-h-0 max-w-md py-0 font-mono text-xs leading-none shadow-none focus:ring-1 !h-7"
         value={draft}
         disabled={submitting}
         aria-label="File name"
@@ -146,12 +146,17 @@ function ArticleTitleChip({
         }}
       />
       {error ? (
-        <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+        <p
+          className="absolute top-full left-0 z-50 mt-0.5 max-w-[min(100%,18rem)] rounded border border-border bg-surface-elevated px-2 py-1 text-xs leading-tight text-red-600 shadow-md dark:text-red-400"
+          role="alert"
+        >
+          {error}
+        </p>
       ) : null}
     </div>
   ) : (
     <code
-      className="max-w-[min(100%,24rem)] cursor-default truncate rounded border border-border bg-surface px-1.5 py-px font-mono text-xs leading-tight text-foreground"
+      className="max-h-7 max-w-[min(100%,24rem)] cursor-default truncate rounded border border-border bg-surface px-1.5 py-0 font-mono text-xs leading-none text-foreground"
       title="Double-click to rename"
       onDoubleClick={(e) => {
         e.preventDefault();
@@ -179,8 +184,8 @@ export function AppHeader() {
 
   return (
     <header className="border-b border-border bg-surface-elevated/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-8 items-center justify-between gap-3 px-[length:var(--spacing-page)] py-0">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+      <div className="mx-auto flex h-8 max-h-8 min-h-8 items-center justify-between gap-3 overflow-visible px-[length:var(--spacing-page)] py-0">
+        <div className="flex min-h-0 min-w-0 max-h-8 flex-1 items-center gap-1.5">
           {libraryCollapsed ? (
             <button
               type="button"
@@ -211,7 +216,7 @@ export function AppHeader() {
             </>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex h-8 max-h-8 shrink-0 items-center gap-1 overflow-visible">
           {showTitleChip ? (
             <ArticleSaveIndicator status={contentSaveStatus} />
           ) : null}

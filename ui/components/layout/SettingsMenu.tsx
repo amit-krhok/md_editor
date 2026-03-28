@@ -66,13 +66,13 @@ export const SettingsMenu = observer(function SettingsMenu({
       <Button
         type="button"
         variant="ghost"
-        className="app-btn--icon h-7 min-w-7 px-1.5"
+        className="app-btn--icon !h-7 !max-h-7 !min-h-0 !min-w-7 !w-7 !max-w-7 !p-0"
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Settings"
         onClick={() => setOpen((v) => !v)}
       >
-        <SettingsIcon className="size-4 text-foreground" />
+        <SettingsIcon className="size-3.5 text-foreground" />
       </Button>
       {open && (
         <div
