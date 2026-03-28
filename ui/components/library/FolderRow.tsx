@@ -12,15 +12,31 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/DropdownMenu";
 
-import { IconFolder, IconMoreHorizontal, IconTrash } from "./LibraryIcons";
+import {
+  IconChevronRight,
+  IconFolder,
+  IconMoreHorizontal,
+  IconPlus,
+  IconTrash,
+} from "./LibraryIcons";
 
 type Props = {
   folder: FolderPublic;
+  expanded: boolean;
+  onToggleExpand: () => void;
   onRequestDelete: (folder: FolderPublic) => void;
+  onRequestCreateFile: (folder: FolderPublic) => void;
   onRename: (folderId: string, name: string) => Promise<void>;
 };
 
-export function FolderRow({ folder, onRequestDelete, onRename }: Props) {
+export function FolderRow({
+  folder,
+  expanded,
+  onToggleExpand,
+  onRequestDelete,
+  onRequestCreateFile,
+  onRename,
+}: Props) {
   const rowRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
@@ -97,6 +113,18 @@ export function FolderRow({ folder, onRequestDelete, onRename }: Props) {
 
   return (
     <div ref={rowRef} className="group flex min-w-0 items-center gap-1 rounded-md py-1.5 pl-2 pr-1 hover:bg-muted/10">
+      <button
+        type="button"
+        className="library-toolbar-btn h-8 w-7 shrink-0 rounded-md"
+        aria-expanded={expanded}
+        aria-label={expanded ? "Hide files in folder" : "Show files in folder"}
+        title="Show or hide files"
+        onClick={onToggleExpand}
+      >
+        <IconChevronRight
+          className={`mx-auto size-4 transition-transform ${expanded ? "rotate-90" : ""}`}
+        />
+      </button>
       <div
         className="flex min-w-0 flex-1 items-center gap-2"
         onDoubleClick={(e) => {
@@ -153,6 +181,10 @@ export function FolderRow({ folder, onRequestDelete, onRename }: Props) {
             <IconMoreHorizontal className="mx-auto size-[18px]" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onRequestCreateFile(folder)}>
+              <IconPlus className="size-4 shrink-0" />
+              Create file
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="text-red-600 dark:text-red-400"
               onClick={() => onRequestDelete(folder)}

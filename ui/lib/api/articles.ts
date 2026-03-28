@@ -16,3 +16,36 @@ export async function listArticlesInFolder(
   const q = new URLSearchParams({ folder_id: folderId });
   return apiJson<ArticlePublic[]>(`/articles/?${q.toString()}`, { token });
 }
+
+export async function createArticle(
+  token: string,
+  payload: { title: string; folderId?: string | null },
+): Promise<ArticlePublic> {
+  return apiJson<ArticlePublic>("/articles/", {
+    method: "POST",
+    token,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: payload.title,
+      content: "",
+      folder_id: payload.folderId ?? null,
+    }),
+  });
+}
+
+export async function getArticle(
+  token: string,
+  articleId: string,
+): Promise<ArticlePublic> {
+  return apiJson<ArticlePublic>(`/articles/${articleId}`, { token });
+}
+
+export async function deleteArticle(
+  token: string,
+  articleId: string,
+): Promise<void> {
+  await apiJson<void>(`/articles/${articleId}`, {
+    method: "DELETE",
+    token,
+  });
+}
