@@ -6,9 +6,11 @@ from sqlalchemy.orm import Session
 
 from core.users.schemas import TokenResponse, UserCreate, UserPublic
 from core.users.services import AuthService, UserService
+from logging import getLogger
 from database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+log = getLogger(__name__)
 
 
 @router.post("/register", response_model=UserPublic, status_code=201)
@@ -25,6 +27,7 @@ def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> TokenResponse:
     """OAuth2 password flow. The form field ``username`` is the user's email (OAuth2 naming)."""
+    log.info(f"Login API called")
     token = AuthService.issue_access_token_for_credentials(
         db, form_data.username, form_data.password
     )

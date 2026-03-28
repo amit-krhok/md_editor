@@ -1,3 +1,9 @@
+import logging
+
+import logging_setup
+
+logging_setup.configure()
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -16,6 +22,8 @@ from views.authentications import router as auth_router
 from views.users import router as users_router
 
 app = FastAPI(title="md_editor API")
+
+log = logging.getLogger("md_editor.api")
 
 app.include_router(auth_router)
 app.include_router(users_router)
@@ -78,6 +86,7 @@ def validate_auth_config() -> None:
         raise RuntimeError(
             "JWT_SECRET_KEY is not set. Add it to .env (see .env.example)."
         )
+    log.info("md_editor API started")
 
 
 @app.get("/test")
