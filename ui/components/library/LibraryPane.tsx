@@ -250,7 +250,7 @@ export const LibraryPane = observer(function LibraryPane() {
   }, [token, deleteArticleTarget, pathname, router, removeArticleFromLocalState]);
 
   const asideClass =
-    "flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-t border-border bg-surface-elevated max-md:max-h-[min(24rem,50vh)] md:h-full md:w-72 md:max-h-none md:border-r md:border-t-0";
+    "flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-t border-border bg-surface-elevated max-md:max-h-[min(24rem,50vh)] md:h-full md:w-[12.6rem] md:max-h-none md:border-r md:border-t-0";
 
   return (
     <>
