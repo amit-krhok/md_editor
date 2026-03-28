@@ -1,26 +1,133 @@
 @import "tailwindcss";
 
+/* Class-based dark mode for Tailwind `dark:` utilities */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0c0a09;
+  --background: #fafaf9;
+  --surface: #fafaf9;
+  --surface-elevated: #ffffff;
+  --border: #e7e5e4;
+  --muted: #57534e;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  /* Text on accent-filled controls (avoid palette `white` — Tailwind v4 theme may omit it). */
+  --on-accent: #fafafa;
+}
+
+.dark {
+  --foreground: #f5f5f4;
+  --background: #0c0a09;
+  --surface: #0c0a09;
+  --surface-elevated: #1c1917;
+  --border: #292524;
+  --muted: #a8a29e;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --on-accent: #0c0a09;
 }
 
 @theme inline {
-  --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --spacing-section: 2rem;
+  --spacing-page: 1.5rem;
 }
 
 body {
-  background: var(--background);
+  background: var(--surface);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/*
+ * Buttons: use `button.app-btn…` so we beat Tailwind preflight (`button { background: none }`, etc.).
+ * !important on fills so utilities like `w-full` never strip the chrome.
+ */
+button.app-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding: 0 1rem;
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+button.app-btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.app-btn.app-btn--primary {
+  background-color: var(--accent) !important;
+  color: var(--on-accent) !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+button.app-btn.app-btn--primary:hover:not(:disabled) {
+  background-color: var(--accent-hover) !important;
+}
+
+button.app-btn.app-btn--primary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button.app-btn.app-btn--secondary {
+  background-color: var(--surface-elevated) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+button.app-btn.app-btn--secondary:hover:not(:disabled) {
+  background-color: color-mix(
+    in srgb,
+    var(--muted) 12%,
+    var(--surface-elevated)
+  ) !important;
+}
+
+button.app-btn.app-btn--secondary:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  outline-offset: 2px;
+}
+
+button.app-btn.app-btn--ghost {
+  background-color: transparent !important;
+  color: var(--muted) !important;
+  border: 1px solid transparent !important;
+}
+
+button.app-btn.app-btn--ghost:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--muted) 14%, transparent) !important;
+  color: var(--foreground) !important;
+}
+
+button.app-btn.app-btn--ghost:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  outline-offset: 2px;
 }
