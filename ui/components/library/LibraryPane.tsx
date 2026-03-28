@@ -288,8 +288,9 @@ export const LibraryPane = observer(function LibraryPane() {
               error={createError}
             />
           ) : null}
-          {createFileContext ? (
+          {createFileContext?.folderId === null ? (
             <CreateFileInline
+              key="create-file-root"
               onSubmit={handleCreateFile}
               onCancel={() => {
                 setCreateFileContext(null);
@@ -334,11 +335,27 @@ export const LibraryPane = observer(function LibraryPane() {
                         setCreateFileError(null);
                         setCreatingFolder(false);
                         setCreateError(null);
+                        setExpandedFolderIds((prev) => new Set(prev).add(f.id));
+                        void ensureFolderArticlesLoaded(f.id);
                       }}
                       onRename={handleRenameFolder}
                     />
                     {expandedFolderIds.has(folder.id) ? (
                       <ul className="ml-4 border-l border-border py-0.5 pl-2">
+                        {createFileContext?.folderId === folder.id ? (
+                          <li className="list-none">
+                            <CreateFileInline
+                              key={`create-file-${folder.id}`}
+                              onSubmit={handleCreateFile}
+                              onCancel={() => {
+                                setCreateFileContext(null);
+                                setCreateFileError(null);
+                              }}
+                              disabled={createFileBusy}
+                              error={createFileError}
+                            />
+                          </li>
+                        ) : null}
                         {loadingFolderId === folder.id ? (
                           <li className="flex justify-center py-3">
                             <Spinner className="size-5" />
