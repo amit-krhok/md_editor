@@ -19,7 +19,7 @@ from core.users.exceptions import (
     UserAlreadyExistsError,
     WeakPasswordError,
 )
-from database import engine
+from database import async_engine
 from views.articles import router as articles_router
 from views.authentications import router as auth_router
 from views.folders import router as folders_router
@@ -125,12 +125,17 @@ def validate_auth_config() -> None:
     log.info("md_editor API started")
 
 
+@app.on_event("shutdown")
+async def dispose_async_engine() -> None:
+    await async_engine.dispose()
+
+
 @app.get("/test")
-def test():
+async def test():
     """Smoke test: API up and database reachable."""
     try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
+        async with async_engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
     except Exception as exc:
         raise HTTPException(
             status_code=503,

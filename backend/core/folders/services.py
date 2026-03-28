@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.folders.exceptions import FolderNameTakenError, FolderNotFoundError
 from core.folders.models import Folder
@@ -13,60 +13,64 @@ from core.users.models import User
 
 class FolderService:
     @staticmethod
-    def _get_owned(
-        db: Session, folder_id: uuid.UUID, user_id: uuid.UUID
+    async def _get_owned(
+        db: AsyncSession, folder_id: uuid.UUID, user_id: uuid.UUID
     ) -> Folder | None:
-        return db.scalars(
+        result = await db.execute(
             select(Folder).where(
                 Folder.id == folder_id,
                 Folder.user_id == user_id,
             )
-        ).first()
+        )
+        return result.scalars().first()
 
     @staticmethod
-    def get_owned_or_raise(db: Session, folder_id: uuid.UUID, user: User) -> Folder:
-        folder = FolderService._get_owned(db, folder_id, user.id)
+    async def get_owned_or_raise(
+        db: AsyncSession, folder_id: uuid.UUID, user: User
+    ) -> Folder:
+        folder = await FolderService._get_owned(db, folder_id, user.id)
         if folder is None:
             raise FolderNotFoundError()
         return folder
 
     @staticmethod
-    def create_folder(db: Session, user: User, name: str) -> Folder:
+    async def create_folder(db: AsyncSession, user: User, name: str) -> Folder:
         trimmed = name.strip()
         folder = Folder(user_id=user.id, name=trimmed)
         db.add(folder)
         try:
-            db.commit()
+            await db.commit()
         except IntegrityError:
-            db.rollback()
+            await db.rollback()
             raise FolderNameTakenError() from None
-        db.refresh(folder)
+        await db.refresh(folder)
         return folder
 
     @staticmethod
-    def list_folders(db: Session, user: User) -> list[Folder]:
-        return list(
-            db.scalars(
-                select(Folder)
-                .where(Folder.user_id == user.id)
-                .order_by(Folder.name)
-            ).all()
+    async def list_folders(db: AsyncSession, user: User) -> list[Folder]:
+        result = await db.execute(
+            select(Folder)
+            .where(Folder.user_id == user.id)
+            .order_by(Folder.name)
         )
+        return list(result.scalars().all())
 
     @staticmethod
-    def update_folder(db: Session, user: User, folder_id: uuid.UUID, name: str) -> Folder:
-        folder = FolderService.get_owned_or_raise(db, folder_id, user)
+    async def update_folder(
+        db: AsyncSession, user: User, folder_id: uuid.UUID, name: str
+    ) -> Folder:
+        folder = await FolderService.get_owned_or_raise(db, folder_id, user)
         folder.name = name.strip()
         try:
-            db.commit()
+            await db.commit()
         except IntegrityError:
-            db.rollback()
+            await db.rollback()
             raise FolderNameTakenError() from None
-        db.refresh(folder)
+        await db.refresh(folder)
         return folder
 
     @staticmethod
-    def delete_folder(db: Session, user: User, folder_id: uuid.UUID) -> None:
-        folder = FolderService.get_owned_or_raise(db, folder_id, user)
-        db.delete(folder)
-        db.commit()
+    async def delete_folder(db: AsyncSession, user: User, folder_id: uuid.UUID) -> None:
+        await FolderService.get_owned_or_raise(db, folder_id, user)
+        await db.execute(delete(Folder).where(Folder.id == folder_id))
+        await db.commit()

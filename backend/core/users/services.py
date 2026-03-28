@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import JWTError, jwt
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core import config
 from core.users.exceptions import (
@@ -22,64 +23,84 @@ from core.utils.jwt_payload import build_access_token_payload
 from core.utils.password_strength import validate_strong_password
 
 
+def _bcrypt_hash_password(pwd: bytes) -> str:
+    return bcrypt.hashpw(pwd, bcrypt.gensalt()).decode("ascii")
+
+
+def _bcrypt_verify_password(pwd: bytes, hashed_ascii: bytes) -> bool:
+    try:
+        return bcrypt.checkpw(pwd, hashed_ascii)
+    except (ValueError, TypeError):
+        return False
+
+
+def _jwt_encode(payload: dict, secret: str, algorithm: str) -> str:
+    return jwt.encode(payload, secret, algorithm=algorithm)
+
+
+def _jwt_decode(token: str, secret: str, algorithms: list[str]) -> dict:
+    return jwt.decode(token, secret, algorithms=algorithms)
+
+
 class UserService:
     @staticmethod
-    def hash_password(plain_password: str) -> str:
+    async def hash_password(plain_password: str) -> str:
         pwd = plain_password.encode("utf-8")
         if len(pwd) > 72:
             pwd = pwd[:72]
-        return bcrypt.hashpw(pwd, bcrypt.gensalt()).decode("ascii")
+        return await asyncio.to_thread(_bcrypt_hash_password, pwd)
 
     @staticmethod
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
+    async def verify_password(plain_password: str, hashed_password: str) -> bool:
         pwd = plain_password.encode("utf-8")
         if len(pwd) > 72:
             pwd = pwd[:72]
-        try:
-            return bcrypt.checkpw(pwd, hashed_password.encode("ascii"))
-        except (ValueError, TypeError):
-            return False
+        hashed = hashed_password.encode("ascii")
+        return await asyncio.to_thread(_bcrypt_verify_password, pwd, hashed)
 
     @staticmethod
-    def get_by_id(db: Session, user_id: uuid.UUID) -> User | None:
-        return db.scalars(select(User).where(User.id == user_id)).first()
+    async def get_by_id(db: AsyncSession, user_id: uuid.UUID) -> User | None:
+        result = await db.execute(select(User).where(User.id == user_id))
+        return result.scalars().first()
 
     @staticmethod
-    def get_by_email(db: Session, email: str) -> User | None:
+    async def get_by_email(db: AsyncSession, email: str) -> User | None:
         normalized = email.strip().lower()
-        return db.scalars(select(User).where(User.email == normalized)).first()
+        result = await db.execute(select(User).where(User.email == normalized))
+        return result.scalars().first()
 
     @staticmethod
-    def create_user(db: Session, email: str, password: str) -> User:
+    async def create_user(db: AsyncSession, email: str, password: str) -> User:
         validate_strong_password(password)
         normalized = email.strip().lower()
-        if UserService.get_by_email(db, normalized):
+        if await UserService.get_by_email(db, normalized):
             raise UserAlreadyExistsError()
         is_active = normalized in config.SUPERUSER_EMAILS
+        hashed = await UserService.hash_password(password)
         user = User(
             email=normalized,
-            hashed_password=UserService.hash_password(password),
+            hashed_password=hashed,
             is_active=is_active,
         )
         db.add(user)
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
         return user
 
     @staticmethod
-    def change_password(
-        db: Session, user: User, old_password: str, new_password: str
+    async def change_password(
+        db: AsyncSession, user: User, old_password: str, new_password: str
     ) -> None:
-        if not UserService.verify_password(old_password, user.hashed_password):
+        if not await UserService.verify_password(old_password, user.hashed_password):
             raise IncorrectCurrentPasswordError()
-        if UserService.verify_password(new_password, user.hashed_password):
+        if await UserService.verify_password(new_password, user.hashed_password):
             raise WeakPasswordError(
                 ["New password must be different from the current password"]
             )
         validate_strong_password(new_password)
-        user.hashed_password = UserService.hash_password(new_password)
+        user.hashed_password = await UserService.hash_password(new_password)
         db.add(user)
-        db.commit()
+        await db.commit()
 
 
 class AuthService:
@@ -89,22 +110,28 @@ class AuthService:
             raise RuntimeError("JWT_SECRET_KEY is not set")
 
     @staticmethod
-    def create_access_token(user_id: uuid.UUID) -> str:
+    async def create_access_token(user_id: uuid.UUID) -> str:
         AuthService._require_jwt_secret()
         expires_at = datetime.now(timezone.utc) + timedelta(
             minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES
         )
         payload = build_access_token_payload(user_id, expires_at)
-        return jwt.encode(
-            payload, config.JWT_SECRET_KEY, algorithm=config.JWT_ALGORITHM
+        return await asyncio.to_thread(
+            _jwt_encode,
+            payload,
+            config.JWT_SECRET_KEY,
+            config.JWT_ALGORITHM,
         )
 
     @staticmethod
-    def decode_token_subject(token: str) -> uuid.UUID:
+    async def decode_token_subject(token: str) -> uuid.UUID:
         AuthService._require_jwt_secret()
         try:
-            payload = jwt.decode(
-                token, config.JWT_SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
+            payload = await asyncio.to_thread(
+                _jwt_decode,
+                token,
+                config.JWT_SECRET_KEY,
+                [config.JWT_ALGORITHM],
             )
             sub = payload.get("sub")
             if sub is None:
@@ -114,10 +141,10 @@ class AuthService:
             raise UnauthorizedError() from None
 
     @staticmethod
-    def authenticate(db: Session, email: str, password: str) -> User:
+    async def authenticate(db: AsyncSession, email: str, password: str) -> User:
         normalized = email.strip().lower()
-        user = UserService.get_by_email(db, normalized)
-        if user is None or not UserService.verify_password(
+        user = await UserService.get_by_email(db, normalized)
+        if user is None or not await UserService.verify_password(
             password, user.hashed_password
         ):
             raise InvalidCredentialsError()
@@ -126,9 +153,9 @@ class AuthService:
         return user
 
     @staticmethod
-    def get_current_user(db: Session, token: str) -> User:
-        user_id = AuthService.decode_token_subject(token)
-        user = UserService.get_by_id(db, user_id)
+    async def get_current_user(db: AsyncSession, token: str) -> User:
+        user_id = await AuthService.decode_token_subject(token)
+        user = await UserService.get_by_id(db, user_id)
         if user is None:
             raise UnauthorizedError()
         if not user.is_active:
@@ -136,8 +163,8 @@ class AuthService:
         return user
 
     @staticmethod
-    def issue_access_token_for_credentials(
-        db: Session, email: str, password: str
+    async def issue_access_token_for_credentials(
+        db: AsyncSession, email: str, password: str
     ) -> str:
-        user = AuthService.authenticate(db, email, password)
-        return AuthService.create_access_token(user.id)
+        user = await AuthService.authenticate(db, email, password)
+        return await AuthService.create_access_token(user.id)

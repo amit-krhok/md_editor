@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.articles.schemas import (
     ArticleCreate,
@@ -19,12 +19,12 @@ router = APIRouter(prefix="/articles", tags=["articles"])
 
 
 @router.post("/", response_model=ArticlePublic, status_code=status.HTTP_201_CREATED)
-def create_article(
+async def create_article(
     body: ArticleCreate,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ArticlePublic:
-    return ArticleService.create_article(
+    return await ArticleService.create_article(
         db,
         current_user,
         body.title,
@@ -34,8 +34,8 @@ def create_article(
 
 
 @router.get("/", response_model=list[ArticlePublic])
-def list_articles(
-    db: Annotated[Session, Depends(get_db)],
+async def list_articles(
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
     folder_id: Annotated[
         uuid.UUID | None,
@@ -48,7 +48,7 @@ def list_articles(
         ),
     ] = False,
 ) -> list[ArticlePublic]:
-    return ArticleService.list_articles(
+    return await ArticleService.list_articles(
         db,
         current_user,
         folder_id=folder_id,
@@ -57,38 +57,40 @@ def list_articles(
 
 
 @router.post("/{article_id}/move", response_model=ArticlePublic)
-def move_article(
+async def move_article(
     article_id: uuid.UUID,
     body: ArticleMove,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ArticlePublic:
-    return ArticleService.move_article(db, current_user, article_id, body.folder_id)
+    return await ArticleService.move_article(
+        db, current_user, article_id, body.folder_id
+    )
 
 
 @router.get("/{article_id}", response_model=ArticlePublic)
-def get_article(
+async def get_article(
     article_id: uuid.UUID,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ArticlePublic:
-    return ArticleService.get_owned_or_raise(db, article_id, current_user)
+    return await ArticleService.get_owned_or_raise(db, article_id, current_user)
 
 
 @router.patch("/{article_id}", response_model=ArticlePublic)
-def update_article(
+async def update_article(
     article_id: uuid.UUID,
     body: ArticleUpdate,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ArticlePublic:
-    return ArticleService.update_article(db, current_user, article_id, body)
+    return await ArticleService.update_article(db, current_user, article_id, body)
 
 
 @router.delete("/{article_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_article(
+async def delete_article(
     article_id: uuid.UUID,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> None:
-    ArticleService.delete_article(db, current_user, article_id)
+    await ArticleService.delete_article(db, current_user, article_id)

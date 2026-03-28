@@ -9,7 +9,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.users.exceptions import InactiveUserError, UnauthorizedError
 from core.users.models import User
@@ -19,12 +19,12 @@ from database import get_db
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
-def get_current_user(
-    db: Annotated[Session, Depends(get_db)],
+async def get_current_user(
+    db: Annotated[AsyncSession, Depends(get_db)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
     try:
-        return AuthService.get_current_user(db, token)
+        return await AuthService.get_current_user(db, token)
     except UnauthorizedError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
