@@ -30,7 +30,7 @@ export function LibraryPaneHeader({
       >
         <IconChevronLeft />
       </button>
-      <span className="min-w-0 flex-1 truncate px-1 text-xs font-semibold uppercase tracking-wide text-muted">
+      <span className="min-w-0 flex-1 truncate px-1 text-xs font-semibold tracking-wide text-muted">
         Library
       </span>
       <DropdownMenu>

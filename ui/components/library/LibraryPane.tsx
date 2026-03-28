@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { useActiveArticle } from "@/components/providers/ActiveArticleContext";
+import { useLibraryPaneUi } from "@/components/providers/LibraryPaneUiContext";
 import {
   createArticle,
   deleteArticle,
@@ -25,7 +26,6 @@ import { CreateFolderInline } from "./CreateFolderInline";
 import { DeleteArticleModal } from "./DeleteArticleModal";
 import { DeleteFolderModal } from "./DeleteFolderModal";
 import { FolderRow } from "./FolderRow";
-import { LibraryExpandFab } from "./LibraryExpandFab";
 import { LibraryPaneHeader } from "./LibraryPaneHeader";
 
 type CreateFileContext = { folderId: string | null };
@@ -36,8 +36,7 @@ export const LibraryPane = observer(function LibraryPane() {
   const router = useRouter();
   const pathname = usePathname();
   const { syncLibraryTitles } = useActiveArticle();
-
-  const [collapsed, setCollapsed] = useState(false);
+  const { libraryCollapsed: collapsed, collapseLibrary } = useLibraryPaneUi();
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [createFileContext, setCreateFileContext] =
     useState<CreateFileContext | null>(null);
@@ -258,7 +257,7 @@ export const LibraryPane = observer(function LibraryPane() {
         <aside className={asideClass}>
           <LibraryPaneHeader
             onCollapse={() => {
-              setCollapsed(true);
+              collapseLibrary();
               setCreatingFolder(false);
               setCreateError(null);
               setCreateFileContext(null);
@@ -378,9 +377,7 @@ export const LibraryPane = observer(function LibraryPane() {
             )}
           </div>
         </aside>
-      ) : (
-        <LibraryExpandFab onExpand={() => setCollapsed(false)} />
-      )}
+      ) : null}
 
       <DeleteFolderModal
         folder={deleteTarget}

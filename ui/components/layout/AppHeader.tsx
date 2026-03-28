@@ -4,11 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ROUTES } from "@/constants/routes";
+import { IconChevronRight } from "@/components/library/LibraryIcons";
 import {
   formatArticleRenameError,
   useActiveArticle,
 } from "@/components/providers/ActiveArticleContext";
+import { useLibraryPaneUi } from "@/components/providers/LibraryPaneUiContext";
+import { ROUTES } from "@/constants/routes";
 import { Input } from "@/ui/Input";
 
 import { SettingsMenu } from "./SettingsMenu";
@@ -130,6 +132,7 @@ function ArticleTitleChip({
 export function AppHeader() {
   const pathname = usePathname() ?? "";
   const { snapshot } = useActiveArticle();
+  const { libraryCollapsed, expandLibrary } = useLibraryPaneUi();
 
   const pathMatch = pathname.match(ARTICLE_PATH_UUID_RE);
   const articleIdFromPath = pathMatch?.[1] ?? null;
@@ -142,6 +145,17 @@ export function AppHeader() {
     <header className="border-b border-border bg-surface-elevated/80 backdrop-blur-sm">
       <div className="mx-auto flex h-8 items-center justify-between gap-3 px-[length:var(--spacing-page)] py-0">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          {libraryCollapsed ? (
+            <button
+              type="button"
+              className="library-toolbar-btn shrink-0 rounded-md"
+              aria-label="Show library"
+              title="Show library"
+              onClick={expandLibrary}
+            >
+              <IconChevronRight />
+            </button>
+          ) : null}
           <Link
             href={ROUTES.home}
             className="shrink-0 text-xs font-semibold leading-none tracking-tight text-foreground"

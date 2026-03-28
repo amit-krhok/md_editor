@@ -77,11 +77,6 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
     });
   }, [articleId, snapshot]);
 
-  const displayTitle =
-    article != null && snapshot != null && snapshot.id === article.id
-      ? snapshot.title
-      : (article?.title ?? "");
-
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center py-16">
