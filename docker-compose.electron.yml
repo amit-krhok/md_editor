@@ -1,27 +1,27 @@
 services:
   db:
-    container_name: md_editor_db
     image: postgres:18.3
     env_file:
       - .env
     volumes:
       - postgres_data_md_editor:/var/lib/postgresql
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - backend_net
     restart: always
 
   api:
-    container_name: md_editor_api
     build:
       context: ./backend
       dockerfile: Dockerfile
     env_file:
       - .env
+    ports:
+      - "8005:8000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       LOG_DIR: /app/logs
@@ -30,50 +30,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - backend_net
     restart: always
-
   ui:
     container_name: md_editor_ui
     build:
       context: ./ui
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8005}
     environment:
       PORT: "3045"
     ports:
       - "3045:3045"
     depends_on:
       - api
-    networks:
-      - backend_net
     restart: always
-
-  nginx:
-    container_name: md_editor_nginx
-    image: nginx:1.27-alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ${MD_EDITOR_CERT_DIR:-./certs}:/etc/md_editor/certs:ro
-    depends_on:
-      - api
-      - ui
-    networks:
-      - backend_net
-      - frontend_net
-
-networks:
-  backend_net:
-    name: md_editor_backend
-    internal: true
-  frontend_net:
-    name: md_editor_frontend
 
 volumes:
   postgres_data_md_editor:

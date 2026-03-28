@@ -11,11 +11,11 @@ A docker based self-hosted simple markdown editor for personal use.
 ## Docker Compose
 
 - **Networks** — **`md_editor_backend`** (`internal: true`): `db`, `api`, `ui` only. **`md_editor_frontend`**: **`nginx` only** (plus its attachment to the backend net so it can proxy). Nothing else sits on the frontend network, so the split is “edge vs app/data plane”.
-- **nginx** — `http://localhost` (and `:443` when you add TLS) proxies `/` → Next.js (`ui:3000`) and `/api/` → FastAPI (`api:8000`).
-- **ui** — also on `http://localhost:3000` for direct access.
+- **nginx** — `http://localhost` (and `:443` when you add TLS) proxies `/` → Next.js (`ui:3045`) and `/api/` → FastAPI (`api:8000`).
+- **ui** — also on `http://localhost:3045` for direct access.
 - **api** — `http://localhost:8005` for direct API calls.
 
-To harden further, drop the **`8005`** / **`3000`** port mappings so only nginx is reachable from the host.
+To harden further, drop the **`8005`** / **`3045`** port mappings so only nginx is reachable from the host.
 
 HTTPS: copy `nginx/conf.d/zz-https.local.conf.example` to `nginx/conf.d/zz-https.local.conf` (gitignored), put certs in `./certs/`, then `docker compose up -d --build`. Tune `server_name` and paths only in that local file.
 
@@ -31,7 +31,7 @@ HTTPS: copy `nginx/conf.d/zz-https.local.conf.example` to `nginx/conf.d/zz-https
    `NEXT_PUBLIC_API_URL=https://editor.example.com/api docker compose build ui --no-cache`  
    then **`docker compose up -d`**.
 
-5. **Shrink the attack surface** — In **`docker-compose.yml`**, remove host mappings **`8005:8000`** and **`3000:3000`** so only **nginx** (`80`/`443`) is reachable from outside.
+5. **Shrink the attack surface** — In **`docker-compose.yml`**, remove host mappings **`8005:8000`** and **`3045:3045`** so only **nginx** (`80`/`443`) is reachable from outside.
 
 6. **Access control** — Set **`SUPERUSER_EMAILS`** (or your app’s equivalent) so trusted accounts are activated; review registration/login behavior for a public deployment.
 

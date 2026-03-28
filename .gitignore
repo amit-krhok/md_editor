@@ -12,6 +12,10 @@ __pycache__
 logs/
 docker-compose.local.yml
 
+dist/
+node_modules/
+
+.DS_Store
 
 certs/*
 !certs/.gitkeep
