@@ -30,5 +30,17 @@ services:
         condition: service_healthy
     restart: always
 
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8005}
+    ports:
+      - "3005:3000"
+    depends_on:
+      - api
+    restart: always
+
 volumes:
   postgres_data_md_editor:
