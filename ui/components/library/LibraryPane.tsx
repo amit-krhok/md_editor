@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useState } from "react";
 
 import { listArticlesWithoutFolder } from "@/lib/api/articles";
-import { createFolder, listFolders } from "@/lib/api/folders";
+import { createFolder, listFolders, updateFolder } from "@/lib/api/folders";
 import { ApiError } from "@/lib/api/http";
 import { useAuthStore } from "@/stores/store-context";
 import type { ArticlePublic } from "@/types/article.types";
@@ -81,6 +81,19 @@ export const LibraryPane = observer(function LibraryPane() {
     }
   }
 
+  const handleRenameFolder = useCallback(
+    async (folderId: string, name: string) => {
+      if (!token) return;
+      const updated = await updateFolder(token, folderId, name);
+      setFolders((prev) =>
+        [...prev.map((f) => (f.id === updated.id ? updated : f))].sort(
+          (a, b) => a.name.localeCompare(b.name),
+        ),
+      );
+    },
+    [token],
+  );
+
   const asideClass =
     "flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-t border-border bg-surface-elevated max-md:max-h-[min(24rem,50vh)] md:h-full md:w-72 md:max-h-none md:border-r md:border-t-0";
 
@@ -134,6 +147,7 @@ export const LibraryPane = observer(function LibraryPane() {
                   <li key={folder.id}>
                     <FolderRow
                       folder={folder}
+                      onRename={handleRenameFolder}
                       onRequestDelete={setDeleteTarget}
                     />
                   </li>

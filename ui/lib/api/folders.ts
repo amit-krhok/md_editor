@@ -18,6 +18,19 @@ export async function createFolder(
   });
 }
 
+export async function updateFolder(
+  token: string,
+  folderId: string,
+  name: string,
+): Promise<FolderPublic> {
+  return apiJson<FolderPublic>(`/folders/${folderId}`, {
+    method: "PATCH",
+    token,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+}
+
 export async function deleteFolder(
   token: string,
   folderId: string,
