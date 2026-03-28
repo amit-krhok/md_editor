@@ -78,9 +78,7 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   }, [articleId, snapshot]);
 
   const displayTitle =
-    article != null &&
-    snapshot != null &&
-    snapshot.id === article.id
+    article != null && snapshot != null && snapshot.id === article.id
       ? snapshot.title
       : (article?.title ?? "");
 
@@ -101,11 +99,8 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        {displayTitle}
-      </h1>
-      <div className="min-h-[12rem] flex-1 rounded-lg border border-border bg-surface-elevated/50 p-4">
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 py-6">
+      <div className="min-h-[12rem] flex-1 p-4">
         {article.content ? (
           <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground">
             {article.content}
