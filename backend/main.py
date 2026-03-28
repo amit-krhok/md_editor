@@ -5,6 +5,7 @@ import logging_setup
 logging_setup.configure()
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from starlette.requests import Request
@@ -26,6 +27,8 @@ from views.folders import router as folders_router
 from views.users import router as users_router
 
 app = FastAPI(title="md_editor API")
+
+app.add_middleware(CORSMiddleware, **config.cors_middleware_kwargs())
 
 log = logging.getLogger("md_editor.api")
 
