@@ -10,8 +10,8 @@
   --surface-elevated: #ffffff;
   --border: #e7e5e4;
   --muted: #57534e;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
+  --accent: #059669;
+  --accent-hover: #047857;
   /* Text on accent-filled controls (avoid palette `white` — Tailwind v4 theme may omit it). */
   --on-accent: #fafafa;
   --danger: #dc2626;
@@ -26,8 +26,8 @@
   --surface-elevated: #1c1917;
   --border: #292524;
   --muted: #a8a29e;
-  --accent: #818cf8;
-  --accent-hover: #a5b4fc;
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
   --on-accent: #0c0a09;
   --danger: #f87171;
   --danger-hover: #ef4444;

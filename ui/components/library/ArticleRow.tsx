@@ -113,7 +113,7 @@ export function ArticleRow({ article, onRequestDelete }: Props) {
     >
       {editing ? (
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          <IconFileText className="size-3.5 shrink-0 text-muted" aria-hidden />
+          <IconFileText className="size-3.5 shrink-0 text-accent" aria-hidden />
           <div className="min-w-0 flex-1">
             <Input
               ref={inputRef}
@@ -146,7 +146,7 @@ export function ArticleRow({ article, onRequestDelete }: Props) {
           className="flex min-w-0 flex-1 items-center gap-1.5 text-foreground"
           title={article.title}
         >
-          <IconFileText className="size-3.5 shrink-0 text-muted" aria-hidden />
+          <IconFileText className="size-3.5 shrink-0 text-accent" aria-hidden />
           <span className="min-w-0 truncate">{article.title}</span>
         </Link>
       )}

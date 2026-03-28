@@ -136,7 +136,7 @@ export function FolderRow({
           }
         }}
       >
-        <IconFolder className="size-3.5 shrink-0 text-muted" aria-hidden />
+        <IconFolder className="size-3.5 shrink-0 text-accent" aria-hidden />
         {editing ? (
           <div className="min-w-0 flex-1">
             <Input
