@@ -6,6 +6,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.articles.models import Article
 from core.folders.exceptions import FolderNameTakenError, FolderNotFoundError
 from core.folders.models import Folder
 from core.users.models import User
@@ -72,5 +73,11 @@ class FolderService:
     @staticmethod
     async def delete_folder(db: AsyncSession, user: User, folder_id: uuid.UUID) -> None:
         await FolderService.get_owned_or_raise(db, folder_id, user)
+        await db.execute(
+            delete(Article).where(
+                Article.folder_id == folder_id,
+                Article.user_id == user.id,
+            )
+        )
         await db.execute(delete(Folder).where(Folder.id == folder_id))
         await db.commit()
