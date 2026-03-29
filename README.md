@@ -4,6 +4,18 @@ A **Docker-first**, **self-hosted**, **actually yours** markdown workspace. Not 
 
 ---
 
+## ✨ Product features (the part humans care about)
+
+- ⌨️ **Slash commands** — Type `/` for tables (with row/column counts), images, links, and **in-table** shortcuts (rows/columns add/remove) when your cursor’s in a cell—no floating toolbar blocking the text.
+- 📝 **Real markdown, edited for real** — **[Milkdown](https://milkdown.dev/)** + **GFM**: headings, lists, block quotes, rules, **strikethrough**, **task lists** (`- [ ]` / `- [x]`), **tables** with normal keyboard nav.
+- 📖 **Definition lists** — `term` / `: definition` style blocks for the glossary-inclined.
+- 😀 **Emoji** — `:shortcode:` input rules plus a picker-style autocomplete when you’re feeling expressive.
+- 💻 **Code blocks** — Language hinting via **CodeMirror** and a copy button so you’re not selecting text like it’s 2003.
+- 📁 **Library model** — Folders and articles, move pieces around, JWT auth, “this is mine” data in **Postgres**.
+- 🖨️ **Print friendly** — Pipe an article through the browser print dialog (PDF vibes) when you need something attachable.
+
+---
+
 ## 🧰 Tech stack (the greatest hits)
 
 - ⚡ **FastAPI** — Python goes brrr, OpenAPI docs for people who read docs
