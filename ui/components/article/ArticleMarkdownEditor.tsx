@@ -15,7 +15,7 @@ import { listener, listenerCtx } from "@milkdown/kit/plugin/listener";
 import { trailing } from "@milkdown/kit/plugin/trailing";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import { commonmark } from "@milkdown/kit/preset/commonmark";
-import { columnResizingPlugin, gfm } from "@milkdown/kit/preset/gfm";
+import { gfm } from "@milkdown/kit/preset/gfm";
 import {
   Milkdown,
   MilkdownProvider,
@@ -73,7 +73,6 @@ function createArticleEditor(
     .use(trailing)
     .use(clipboard)
     .use(gfm)
-    .use(columnResizingPlugin)
     .config((ctx) => {
       ctx.get(listenerCtx).markdownUpdated((_c, markdown) => {
         onMarkdownChange(markdown);

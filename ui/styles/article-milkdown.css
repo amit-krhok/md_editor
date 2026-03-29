@@ -202,16 +202,8 @@
   border-bottom-width: 2px;
 }
 
-.article-md-editor .ProseMirror .column-resize-handle {
-  background-color: color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
 .article-md-editor .ProseMirror .selectedCell::after {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
-}
-
-.article-md-editor .ProseMirror.resize-cursor {
-  cursor: col-resize;
 }
 
 .article-md-editor .ProseMirror dl[data-type="footnote_definition"] {
