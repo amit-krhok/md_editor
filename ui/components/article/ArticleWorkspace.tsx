@@ -107,7 +107,13 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   }, [articleId, snapshot]);
 
   useEffect(() => {
-    if (!token || !articleId || loading || !article || article.id !== articleId) {
+    if (
+      !token ||
+      !articleId ||
+      loading ||
+      !article ||
+      article.id !== articleId
+    ) {
       return;
     }
     if (content === lastSavedRef.current) {
