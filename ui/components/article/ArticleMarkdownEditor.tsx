@@ -33,6 +33,10 @@ import {
   remarkEmojiPlugin,
 } from "@/components/article/milkdown-plugins";
 import { slashCommandPlugin } from "@/components/article/slash-commands";
+import {
+  taskListListItemExtension,
+  taskListTogglePlugin,
+} from "@/components/article/task-list-support";
 
 import "prosemirror-tables/style/tables.css";
 import "@milkdown/kit/prose/view/style/prosemirror.css";
@@ -75,6 +79,10 @@ function createArticleEditor(
     .use(trailing)
     .use(clipboard)
     .use(gfm)
+    /* Task list UI must register after gfm or preset-gfm overwrites list_item (plain li, no checkbox). */
+    .use(taskListListItemExtension[0])
+    .use(taskListListItemExtension[1])
+    .use(taskListTogglePlugin)
     .use(slashCommandPlugin)
     .config((ctx) => {
       ctx.get(listenerCtx).markdownUpdated((_c, markdown) => {

@@ -96,6 +96,36 @@
   display: list-item;
 }
 
+/* GFM task lists: checkbox replaces the bullet; avoid disc + checkbox. */
+.article-md-editor .ProseMirror ul:has(> li.task-list-item) {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+
+.article-md-editor .ProseMirror li.task-list-item {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.article-md-editor .ProseMirror li.task-list-item .task-list-item-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.article-md-editor .ProseMirror li.task-list-item .task-list-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.article-md-editor .ProseMirror li.task-list-item .task-list-item-checkbox {
+  flex-shrink: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
 .article-md-editor .ProseMirror blockquote {
   margin: 0.65em 0;
   padding-left: 1rem;

@@ -40,3 +40,6 @@ HTTPS: copy `nginx/conf.d/zz-https.local.conf.example` to `nginx/conf.d/zz-https
 8. **Host firewall** — Allow inbound **`80`/`443`** (and **`22`** or your admin path) only; block direct exposure of Postgres and optional debug ports.
 
 9. **Updates** — Rebuild images after code changes (`docker compose build` / `up -d`); run DB migrations if your backend adds them.
+
+This project uses open-source libraries including Milkdown, CodeMirror, and others.
+All respective licenses apply to their components.
