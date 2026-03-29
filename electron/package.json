@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "x-security-note-electron-env": "SECURITY: Personal use only. extraResources bakes electron/.env into the packaged app; embedding secrets in a distributable is unsafe.",
   "dependencies": {
     "axios": "^1.14.0"
   },
@@ -25,7 +26,6 @@
       "target": "dmg",
       "category": "public.app-category.developer-tools"
     },
-    "_security_note_baked_env": "SECURITY: Personal use only. Baking electron/.env into the DMG exposes secrets—unsafe for public distribution.",
     "files": [
       "**/*",
       "!packaged.env.example"

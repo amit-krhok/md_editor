@@ -37,6 +37,14 @@ A **Docker-first**, **self-hosted**, **actually yours** markdown workspace. Not 
 
 ---
 
+## 🖥️ Electron desktop (optional)
+
+The **`electron/`** shell can run the UI against Docker Compose on your machine (see scripts and `docker-compose.electron.yml`). **`npm run build`** produces a packaged app (e.g. macOS DMG) via **electron-builder**.
+
+**Security (read this):** the build copies **`electron/.env`** into the app bundle as **`extraResources`** so the packaged binary can use the same database/API settings as local dev. That **bakes secrets into the distributable**. Treat it as **personal / private use** on hardware you control. **Do not** ship that DMG to others or publish it if it contains real credentials—the binary is not a safe place for secrets. For anything you’d hand to another person, use a different packaging story (no baked `.env`, or runtime config they supply themselves).
+
+---
+
 ## 🎓 Production checklist (read this or enjoy regret)
 
 1. 🔑 **Secrets** — Real `.env` on the server. **`JWT_SECRET_KEY`**: long, random, not `changeme`. **`POSTGRES_PASSWORD`**: same energy. Never commit. `.env.example` is a _hint_, not a dare.
@@ -65,6 +73,7 @@ A **Docker-first**, **self-hosted**, **actually yours** markdown workspace. Not 
 
 - 🐍 **[backend/README.md](backend/README.md)** — API features, routes, and JWT drama
 - 🖼️ **[ui/README.md](ui/README.md)** — Next dev server, Milkdown, and “why is my port 3045”
+- 🧩 **`electron/`** — Optional desktop shell (same baked-`.env` / packaging caveats as **Electron desktop** above)
 
 ---
 
