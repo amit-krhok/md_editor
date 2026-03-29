@@ -1,3 +1,5 @@
+import type { EditorState } from "@milkdown/prose/state";
+
 import { defaultSlashCommands } from "./default-commands";
 import type { SlashCommand } from "./types";
 
@@ -21,11 +23,18 @@ export function getSlashCommands(): SlashCommand[] {
 
 export function filterSlashCommands(
   query: string,
+  state?: EditorState,
   all: SlashCommand[] = getSlashCommands(),
 ): SlashCommand[] {
+  let cmds = all;
+  if (state) {
+    cmds = cmds.filter(
+      (cmd) => !cmd.visibleInPicker || cmd.visibleInPicker(state),
+    );
+  }
   const q = query.trim().toLowerCase();
-  if (!q) return all;
-  return all.filter((cmd) => {
+  if (!q) return cmds;
+  return cmds.filter((cmd) => {
     if (cmd.id.toLowerCase().startsWith(q)) return true;
     if (cmd.title.toLowerCase().includes(q)) return true;
     return cmd.aliases?.some((a) => a.toLowerCase().startsWith(q)) ?? false;

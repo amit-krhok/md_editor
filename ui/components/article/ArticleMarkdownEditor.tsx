@@ -33,7 +33,10 @@ import {
   remarkEmojiPlugin,
 } from "@/components/article/milkdown-plugins";
 import { emojiAutocompletePlugin } from "@/components/article/emoji-autocomplete";
-import { slashCommandPlugin } from "@/components/article/slash-commands";
+import {
+  slashCommandPlugin,
+  slashEditorKeymapProps,
+} from "@/components/article/slash-commands";
 import {
   definitionListSchemaPlugins,
   remarkDefListPlugin,
@@ -68,6 +71,7 @@ function createArticleEditor(
       ctx.set(editorViewOptionsCtx, {
         editable: () => true,
         ...buildLinkEditorProps(),
+        ...slashEditorKeymapProps(ctx),
       });
       ctx.update(indentConfig.key, (value) => ({
         ...value,

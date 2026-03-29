@@ -1,6 +1,14 @@
 import type { Ctx } from "@milkdown/kit/ctx";
-import { Plugin, PluginKey, TextSelection } from "@milkdown/prose/state";
-import type { EditorView } from "@milkdown/prose/view";
+import {
+  Plugin,
+  PluginKey,
+  TextSelection,
+  type EditorState,
+} from "@milkdown/prose/state";
+import type {
+  DirectEditorProps,
+  EditorView,
+} from "@milkdown/prose/view";
 import { $prose, replaceRange } from "@milkdown/kit/utils";
 
 import { findEmojiQuery } from "@/components/article/emoji-autocomplete/find-emoji-query";
@@ -44,15 +52,16 @@ type SlashMeta =
       fieldIndex: number;
     };
 
-function pickList(query: string) {
-  return filterSlashCommands(query);
+function pickList(query: string, state: EditorState) {
+  return filterSlashCommands(query, state);
 }
 
 function initialPickState(
   slash: { from: number; to: number; query: string },
   prev: SlashPluginState,
+  docState: EditorState,
 ): SlashPluginState {
-  const list = pickList(slash.query);
+  const list = pickList(slash.query, docState);
   if (!list.length) return { mode: "idle" };
 
   let selectedIndex = 0;
@@ -189,8 +198,18 @@ class SlashCommandView {
     const nextIndex = st.fieldIndex + 1;
 
     if (nextIndex >= st.command.fields.length) {
-      const md = st.command.buildMarkdown(values);
-      replaceRange(md, { from: st.from, to: st.to })(this.ctx);
+      if (st.command.execute) {
+        const ok = st.command.execute({
+          ctx: this.ctx,
+          view: this.view,
+          from: st.from,
+          to: st.to,
+        });
+        if (!ok) return;
+      } else {
+        const md = st.command.buildMarkdown(values);
+        replaceRange(md, { from: st.from, to: st.to })(this.ctx);
+      }
       this.hideFields();
       this.view.dispatch(
         this.view.state.tr.setMeta(slashCommandPluginKey, { action: "close" }),
@@ -249,7 +268,7 @@ class SlashCommandView {
   private renderPick(
     st: Extract<SlashPluginState, { mode: "pick" }>,
   ) {
-    const list = pickList(st.query);
+    const list = pickList(st.query, this.view.state);
     this.menu.innerHTML = "";
     if (!list.length) {
       this.menu.style.display = "none";
@@ -284,8 +303,18 @@ class SlashCommandView {
     cmd: SlashCommand,
   ) {
     if (cmd.fields.length === 0) {
-      const md = cmd.buildMarkdown({});
-      replaceRange(md, { from: st.from, to: st.to })(this.ctx);
+      if (cmd.execute) {
+        const ok = cmd.execute({
+          ctx: this.ctx,
+          view: this.view,
+          from: st.from,
+          to: st.to,
+        });
+        if (!ok) return;
+      } else {
+        const md = cmd.buildMarkdown({});
+        replaceRange(md, { from: st.from, to: st.to })(this.ctx);
+      }
       this.menu.style.display = "none";
       this.view.dispatch(
         this.view.state.tr.setMeta(slashCommandPluginKey, { action: "close" }),
@@ -336,6 +365,98 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Slash menu pick-mode keys. Registered via `editorViewOptionsCtx.handleKeyDown` so this
+ * runs before plugin handlers (notably prosemirror-tables ArrowUp/ArrowDown in cells).
+ */
+export function slashPickModeHandleKeyDown(
+  view: EditorView,
+  event: KeyboardEvent,
+  ctx: Ctx,
+): boolean {
+  const st = slashCommandPluginKey.getState(view.state);
+  if (!st || st.mode !== "pick") return false;
+
+  const list = pickList(st.query, view.state);
+  if (!list.length) return false;
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    view.dispatch(
+      view.state.tr.setMeta(slashCommandPluginKey, {
+        action: "nav",
+        delta: 1,
+      }),
+    );
+    return true;
+  }
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    view.dispatch(
+      view.state.tr.setMeta(slashCommandPluginKey, {
+        action: "nav",
+        delta: -1,
+      }),
+    );
+    return true;
+  }
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const cmd = list[st.selectedIndex];
+    if (!cmd) return true;
+    if (cmd.fields.length === 0) {
+      if (cmd.execute) {
+        const ok = cmd.execute({
+          ctx,
+          view,
+          from: st.from,
+          to: st.to,
+        });
+        if (!ok) return true;
+      } else {
+        replaceRange(cmd.buildMarkdown({}), {
+          from: st.from,
+          to: st.to,
+        })(ctx);
+      }
+      view.dispatch(
+        view.state.tr.setMeta(slashCommandPluginKey, { action: "close" }),
+      );
+    } else {
+      view.dispatch(
+        view.state.tr.setMeta(slashCommandPluginKey, {
+          action: "openFields",
+          command: cmd,
+          from: st.from,
+          to: st.to,
+        }),
+      );
+    }
+    return true;
+  }
+  if (event.key === "Escape") {
+    event.preventDefault();
+    view.dispatch(
+      view.state.tr
+        .delete(st.from, st.to)
+        .setSelection(TextSelection.create(view.state.tr.doc, st.from))
+        .setMeta(slashCommandPluginKey, { action: "close" }),
+    );
+    return true;
+  }
+  return false;
+}
+
+export function slashEditorKeymapProps(
+  ctx: Ctx,
+): Pick<DirectEditorProps, "handleKeyDown"> {
+  return {
+    handleKeyDown(view, event) {
+      return slashPickModeHandleKeyDown(view, event, ctx);
+    },
+  };
+}
+
 export const slashCommandPlugin = $prose((ctx: Ctx) => {
   return new Plugin<SlashPluginState>({
     key: slashCommandPluginKey,
@@ -368,7 +489,7 @@ export const slashCommandPlugin = $prose((ctx: Ctx) => {
         }
 
         if (meta?.action === "nav" && pluginState.mode === "pick") {
-          const list = pickList(pluginState.query);
+          const list = pickList(pluginState.query, newState);
           if (!list.length) return { mode: "idle" };
           const len = list.length;
           const ni =
@@ -393,72 +514,7 @@ export const slashCommandPlugin = $prose((ctx: Ctx) => {
           return { mode: "idle" };
         }
 
-        return initialPickState(slash, pluginState);
-      },
-    },
-    props: {
-      handleKeyDown(view, event) {
-        const st = slashCommandPluginKey.getState(view.state);
-        if (!st || st.mode !== "pick") return false;
-
-        const list = pickList(st.query);
-        if (!list.length) return false;
-
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          view.dispatch(
-            view.state.tr.setMeta(slashCommandPluginKey, {
-              action: "nav",
-              delta: 1,
-            }),
-          );
-          return true;
-        }
-        if (event.key === "ArrowUp") {
-          event.preventDefault();
-          view.dispatch(
-            view.state.tr.setMeta(slashCommandPluginKey, {
-              action: "nav",
-              delta: -1,
-            }),
-          );
-          return true;
-        }
-        if (event.key === "Enter") {
-          event.preventDefault();
-          const cmd = list[st.selectedIndex];
-          if (!cmd) return true;
-          if (cmd.fields.length === 0) {
-            replaceRange(cmd.buildMarkdown({}), {
-              from: st.from,
-              to: st.to,
-            })(ctx);
-            view.dispatch(
-              view.state.tr.setMeta(slashCommandPluginKey, { action: "close" }),
-            );
-          } else {
-            view.dispatch(
-              view.state.tr.setMeta(slashCommandPluginKey, {
-                action: "openFields",
-                command: cmd,
-                from: st.from,
-                to: st.to,
-              }),
-            );
-          }
-          return true;
-        }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          view.dispatch(
-            view.state.tr
-              .delete(st.from, st.to)
-              .setSelection(TextSelection.create(view.state.tr.doc, st.from))
-              .setMeta(slashCommandPluginKey, { action: "close" }),
-          );
-          return true;
-        }
-        return false;
+        return initialPickState(slash, pluginState, newState);
       },
     },
     view(editorView) {

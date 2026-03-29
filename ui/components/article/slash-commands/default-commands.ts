@@ -1,3 +1,5 @@
+import { tableStructureSlashCommands } from "@/components/article/table-bubble";
+
 import type { SlashCommand } from "./types";
 
 function buildTableMarkdown(values: Record<string, string>): string {
@@ -20,6 +22,7 @@ function buildTableMarkdown(values: Record<string, string>): string {
 }
 
 export const defaultSlashCommands: SlashCommand[] = [
+  ...tableStructureSlashCommands,
   {
     id: "table",
     title: "Table",
