@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "md_editor",
+  title: "MD Editor",
   description: "Personal markdown editor",
 };
 
