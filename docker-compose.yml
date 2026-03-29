@@ -14,6 +14,8 @@ services:
     networks:
       - backend_net
     restart: always
+    ports:
+      - "5432:5432"
 
   api:
     container_name: md_editor_api
@@ -23,7 +25,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:${DB_PORT}/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
       LOG_DIR: /app/logs
     volumes:
       - ./logs:/app/logs
@@ -33,6 +35,8 @@ services:
     networks:
       - backend_net
     restart: always
+    ports:
+      - "8000:8000"
 
   ui:
     container_name: md_editor_ui
