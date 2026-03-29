@@ -159,6 +159,36 @@
   margin: 0.5em 0;
 }
 
+/* Definition lists: term then lines starting with `: ` (remark-definition-list). */
+.article-md-editor .ProseMirror dl.md-def-list {
+  margin: 0.65em 0;
+}
+
+.article-md-editor .ProseMirror dl.md-def-list dt.md-def-term {
+  margin: 0.55em 0 0.2em;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.article-md-editor .ProseMirror dl.md-def-list dt.md-def-term:first-child {
+  margin-top: 0;
+}
+
+.article-md-editor .ProseMirror dl.md-def-list dd.md-def-desc {
+  margin: 0 0 0.45em;
+  padding-left: 1.1rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--foreground);
+}
+
+.article-md-editor .ProseMirror dl.md-def-list dd.md-def-desc > p:first-child {
+  margin-top: 0;
+}
+
+.article-md-editor .ProseMirror dl.md-def-list dd.md-def-desc > p:last-child {
+  margin-bottom: 0;
+}
+
 .article-md-editor .ProseMirror code {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.86em;

@@ -35,6 +35,10 @@ import {
 import { emojiAutocompletePlugin } from "@/components/article/emoji-autocomplete";
 import { slashCommandPlugin } from "@/components/article/slash-commands";
 import {
+  definitionListSchemaPlugins,
+  remarkDefListPlugin,
+} from "@/components/article/definition-list-support";
+import {
   taskListListItemExtension,
   taskListTogglePlugin,
 } from "@/components/article/task-list-support";
@@ -71,7 +75,14 @@ function createArticleEditor(
       }));
     })
     .use(remarkEmojiPlugin)
+    .use(remarkDefListPlugin)
     .use(commonmark)
+    .use(definitionListSchemaPlugins[0])
+    .use(definitionListSchemaPlugins[1])
+    .use(definitionListSchemaPlugins[2])
+    .use(definitionListSchemaPlugins[3])
+    .use(definitionListSchemaPlugins[4])
+    .use(definitionListSchemaPlugins[5])
     .use(emojiShortcodeInputRule)
     .config((ctx) => configureCodeBlock(ctx))
     .use(codeBlockComponent)
