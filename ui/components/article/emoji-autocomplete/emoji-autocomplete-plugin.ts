@@ -198,6 +198,71 @@ class EmojiAutocompleteView {
   }
 }
 
+/**
+ * Emoji pick-mode keys. Registered via `editorViewOptionsCtx.handleKeyDown` with slash
+ * (`buildArticleEditorKeymapProps`) so ↑/↓ navigate the list in table cells instead of
+ * moving the table selection.
+ */
+export function emojiPickModeHandleKeyDown(
+  view: EditorView,
+  event: KeyboardEvent,
+): boolean {
+  const st = emojiAutocompletePluginKey.getState(view.state);
+  if (!st || st.mode !== "pick") return false;
+
+  const list = filterEmojis(st.query);
+  if (!list.length) return false;
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    view.dispatch(
+      view.state.tr.setMeta(emojiAutocompletePluginKey, {
+        action: "nav",
+        delta: 1,
+      }),
+    );
+    return true;
+  }
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    view.dispatch(
+      view.state.tr.setMeta(emojiAutocompletePluginKey, {
+        action: "nav",
+        delta: -1,
+      }),
+    );
+    return true;
+  }
+  if (event.key === "Enter" || event.key === "Tab") {
+    event.preventDefault();
+    const row = list[st.selectedIndex];
+    if (!row) return true;
+    const tr = view.state.tr.replaceWith(
+      st.from,
+      st.to,
+      view.state.schema.text(row.emoji),
+    );
+    const pos = st.from + row.emoji.length;
+    view.dispatch(
+      tr
+        .setSelection(TextSelection.create(tr.doc, pos))
+        .setMeta(emojiAutocompletePluginKey, { action: "close" }),
+    );
+    return true;
+  }
+  if (event.key === "Escape") {
+    event.preventDefault();
+    const tr = view.state.tr.delete(st.from, st.to);
+    view.dispatch(
+      tr
+        .setSelection(TextSelection.create(tr.doc, st.from))
+        .setMeta(emojiAutocompletePluginKey, { action: "close" }),
+    );
+    return true;
+  }
+  return false;
+}
+
 export const emojiAutocompletePlugin = $prose((_ctx) => {
   return new Plugin<EmojiPluginState>({
     key: emojiAutocompletePluginKey,
@@ -232,64 +297,6 @@ export const emojiAutocompletePlugin = $prose((_ctx) => {
         }
 
         return initialPickState(hit, pluginState);
-      },
-    },
-    props: {
-      handleKeyDown(view, event) {
-        const st = emojiAutocompletePluginKey.getState(view.state);
-        if (!st || st.mode !== "pick") return false;
-
-        const list = filterEmojis(st.query);
-        if (!list.length) return false;
-
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          view.dispatch(
-            view.state.tr.setMeta(emojiAutocompletePluginKey, {
-              action: "nav",
-              delta: 1,
-            }),
-          );
-          return true;
-        }
-        if (event.key === "ArrowUp") {
-          event.preventDefault();
-          view.dispatch(
-            view.state.tr.setMeta(emojiAutocompletePluginKey, {
-              action: "nav",
-              delta: -1,
-            }),
-          );
-          return true;
-        }
-        if (event.key === "Enter" || event.key === "Tab") {
-          event.preventDefault();
-          const row = list[st.selectedIndex];
-          if (!row) return true;
-          const tr = view.state.tr.replaceWith(
-            st.from,
-            st.to,
-            view.state.schema.text(row.emoji),
-          );
-          const pos = st.from + row.emoji.length;
-          view.dispatch(
-            tr
-              .setSelection(TextSelection.create(tr.doc, pos))
-              .setMeta(emojiAutocompletePluginKey, { action: "close" }),
-          );
-          return true;
-        }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          view.dispatch(
-            view.state.tr
-              .delete(st.from, st.to)
-              .setSelection(TextSelection.create(view.state.tr.doc, st.from))
-              .setMeta(emojiAutocompletePluginKey, { action: "close" }),
-          );
-          return true;
-        }
-        return false;
       },
     },
     view(editorView) {

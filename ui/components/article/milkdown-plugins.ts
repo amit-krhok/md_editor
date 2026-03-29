@@ -20,6 +20,9 @@ import type {
 import type { Ctx } from "@milkdown/kit/ctx";
 import { $inputRule, $remark } from "@milkdown/kit/utils";
 
+import { emojiPickModeHandleKeyDown } from "@/components/article/emoji-autocomplete/emoji-autocomplete-plugin";
+import { slashPickModeHandleKeyDown } from "@/components/article/slash-commands/slash-plugin";
+
 function readLinkHref(marks: readonly Mark[], link: MarkType): string | null {
   const m = marks.find((mk) => mk.type === link);
   const h = m?.attrs?.href;
@@ -234,6 +237,23 @@ export function reconfigureCodeBlockEditorThemes() {
         effects: codeBlockThemeCompartment.reconfigure(ext),
       });
     });
+}
+
+/**
+ * Slash and `:emoji:` pick modes use `editorViewOptionsCtx.handleKeyDown` so ↑/↓ run
+ * before prosemirror-tables cell navigation (including inside table cells).
+ */
+export function buildArticleEditorKeymapProps(
+  ctx: Ctx,
+): Pick<DirectEditorProps, "handleKeyDown"> {
+  return {
+    handleKeyDown(view, event) {
+      return (
+        slashPickModeHandleKeyDown(view, event, ctx) ||
+        emojiPickModeHandleKeyDown(view, event)
+      );
+    },
+  };
 }
 
 /** CodeMirror-backed fenced blocks + syntax highlighting. */

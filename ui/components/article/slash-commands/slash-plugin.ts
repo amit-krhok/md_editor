@@ -150,10 +150,10 @@ class SlashCommandView {
 
   private cancelFields(st: Extract<SlashPluginState, { mode: "fields" }>) {
     this.hideFields();
+    const tr = this.view.state.tr.delete(st.from, st.to);
     this.view.dispatch(
-      this.view.state.tr
-        .delete(st.from, st.to)
-        .setSelection(TextSelection.create(this.view.state.tr.doc, st.from))
+      tr
+        .setSelection(TextSelection.create(tr.doc, st.from))
         .setMeta(slashCommandPluginKey, { action: "close" }),
     );
     this.view.focus();
@@ -436,10 +436,10 @@ export function slashPickModeHandleKeyDown(
   }
   if (event.key === "Escape") {
     event.preventDefault();
+    const tr = view.state.tr.delete(st.from, st.to);
     view.dispatch(
-      view.state.tr
-        .delete(st.from, st.to)
-        .setSelection(TextSelection.create(view.state.tr.doc, st.from))
+      tr
+        .setSelection(TextSelection.create(tr.doc, st.from))
         .setMeta(slashCommandPluginKey, { action: "close" }),
     );
     return true;
