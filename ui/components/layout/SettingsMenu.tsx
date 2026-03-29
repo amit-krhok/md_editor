@@ -77,7 +77,7 @@ export const SettingsMenu = observer(function SettingsMenu({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-1 min-w-40 rounded-md border border-border bg-surface-elevated py-1 shadow-lg"
+          className="absolute right-0 z-[300] mt-1 min-w-40 rounded-md border border-border bg-surface-elevated py-1 shadow-lg"
         >
           {showSignOut && auth.user && (
             <div

@@ -3,6 +3,7 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, type ReactNode } from "react";
 
+import { reconfigureCodeBlockEditorThemes } from "@/components/article/milkdown-plugins";
 import { useThemeStore } from "@/stores/store-context";
 
 /**
@@ -21,6 +22,7 @@ export const ThemeRoot = observer(function ThemeRoot({
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme.theme === "dark");
+    queueMicrotask(() => reconfigureCodeBlockEditorThemes());
   }, [theme.theme]);
 
   return <>{children}</>;

@@ -183,7 +183,7 @@ export function AppHeader() {
     snapshot.id === articleIdFromPath;
 
   return (
-    <header className="border-b border-border bg-surface-elevated/80 backdrop-blur-sm">
+    <header className="relative z-40 border-b border-border bg-surface-elevated/80 backdrop-blur-sm">
       <div className="mx-auto flex h-8 max-h-8 min-h-8 items-center justify-between gap-3 overflow-visible px-[length:var(--spacing-page)] py-0">
         <div className="flex min-h-0 min-w-0 max-h-8 flex-1 items-center gap-1.5">
           {libraryCollapsed ? (

@@ -3,6 +3,7 @@
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ArticleMarkdownEditor } from "@/components/article/ArticleMarkdownEditor";
 import { getArticle, updateArticle } from "@/lib/api/articles";
 import { ApiError } from "@/lib/api/http";
 import { useActiveArticle } from "@/components/providers/ActiveArticleContext";
@@ -28,11 +29,9 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const contentRef = useRef("");
   const lastSavedRef = useRef("");
   const savedIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastFocusedArticleIdRef = useRef<string | null>(null);
 
   contentRef.current = content;
 
@@ -84,10 +83,6 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
       cancelled = true;
     };
   }, [token, articleId, clearSavedIdleTimer, setContentSaveStatus]);
-
-  useEffect(() => {
-    lastFocusedArticleIdRef.current = null;
-  }, [articleId]);
 
   useEffect(() => {
     return () => {
@@ -163,23 +158,6 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
     clearSavedIdleTimer,
   ]);
 
-  useEffect(() => {
-    if (loading || !article || article.id !== articleId) return;
-    if (lastFocusedArticleIdRef.current === articleId) return;
-    lastFocusedArticleIdRef.current = articleId;
-    requestAnimationFrame(() => {
-      const el = textareaRef.current;
-      if (!el) return;
-      el.focus();
-      try {
-        const end = el.value.length;
-        el.setSelectionRange(end, end);
-      } catch {
-        /* ignore if selection not applicable */
-      }
-    });
-  }, [loading, article, articleId]);
-
   const onContentChange = useCallback(
     (value: string) => {
       clearSavedIdleTimer();
@@ -207,16 +185,10 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col py-4">
-      <label className="sr-only" htmlFor="article-content">
-        Article content
-      </label>
-      <textarea
-        id="article-content"
-        ref={textareaRef}
-        className="min-h-[min(70vh,36rem)] w-full flex-1 resize-none border-0 bg-transparent px-0 py-1 font-mono text-sm leading-relaxed text-foreground outline-none selection:bg-accent/20"
-        spellCheck={false}
-        value={content}
-        onChange={(e) => onContentChange(e.target.value)}
+      <ArticleMarkdownEditor
+        articleId={articleId}
+        initialMarkdown={content}
+        onMarkdownChange={onContentChange}
       />
     </div>
   );

@@ -1,0 +1,526 @@
+/**
+ * Milkdown / ProseMirror — GitHub-flavored markdown (remark-gfm via @milkdown/preset/gfm).
+ */
+
+.article-md-editor {
+  min-height: min(70vh, 36rem);
+}
+
+.article-md-editor .ProseMirror {
+  --default-cell-min-width: 5em;
+  min-height: min(70vh, 36rem);
+  width: 100%;
+  padding: 0.25rem 0;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--foreground);
+  outline: none;
+  caret-color: var(--accent);
+}
+
+.article-md-editor .ProseMirror:focus-visible {
+  outline: none;
+}
+
+.article-md-editor .ProseMirror h1 {
+  margin: 0.85em 0 0.45em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.article-md-editor .ProseMirror h2 {
+  margin: 0.85em 0 0.4em;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.article-md-editor .ProseMirror h3 {
+  margin: 0.75em 0 0.35em;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.article-md-editor .ProseMirror h4,
+.article-md-editor .ProseMirror h5,
+.article-md-editor .ProseMirror h6 {
+  margin: 0.65em 0 0.3em;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.article-md-editor .ProseMirror p {
+  margin: 0.45em 0;
+}
+
+/* Tailwind preflight sets `list-style: none` on ul/ol; restore markers inside the editor. */
+.article-md-editor .ProseMirror ul {
+  margin: 0.45em 0;
+  padding-left: 1.35rem;
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+/* Hierarchical 1 / 1.1 / 1.2 / … — each nested `ol` resets a counter scope for `counters()`. */
+.article-md-editor .ProseMirror ol {
+  margin: 0.45em 0;
+  padding-left: 1.35rem;
+  list-style-type: none;
+  counter-reset: md-ol-item;
+}
+
+.article-md-editor .ProseMirror ol > li {
+  counter-increment: md-ol-item;
+}
+
+.article-md-editor .ProseMirror ol > li::marker {
+  content: counters(md-ol-item, ".") ". ";
+  color: var(--foreground);
+}
+
+.article-md-editor .ProseMirror ul ul {
+  list-style-type: circle;
+}
+
+.article-md-editor .ProseMirror ul ul ul {
+  list-style-type: square;
+}
+
+.article-md-editor .ProseMirror li {
+  margin: 0.2em 0;
+  display: list-item;
+}
+
+.article-md-editor .ProseMirror blockquote {
+  margin: 0.65em 0;
+  padding-left: 1rem;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--muted);
+}
+
+.article-md-editor .ProseMirror hr {
+  margin: 1.25em 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.article-md-editor .ProseMirror a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.article-md-editor .ProseMirror del {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.article-md-editor .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md, 0.5rem);
+  margin: 0.5em 0;
+}
+
+.article-md-editor .ProseMirror code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.86em;
+  padding: 0.12em 0.35em;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--foreground) 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+}
+
+.article-md-editor .ProseMirror pre {
+  margin: 0.75em 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: color-mix(in srgb, var(--foreground) 5%, var(--surface-elevated));
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.article-md-editor .ProseMirror pre code {
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: inherit;
+}
+
+.article-md-editor .ProseMirror .tableWrapper {
+  margin: 0.75em 0;
+}
+
+/*
+ * `border-collapse: collapse` + `border-radius` + `overflow: hidden` often drops the
+ * outer table border in WebKit/Blink. Use separate + spacing 0 and right/bottom
+ * cell borders so the table’s own border forms a reliable outer frame.
+ */
+.article-md-editor .ProseMirror table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 0.5rem);
+  overflow: hidden;
+}
+
+.article-md-editor .ProseMirror th,
+.article-md-editor .ProseMirror td {
+  padding: 0.45em 0.65em;
+  border: none;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.article-md-editor .ProseMirror th:last-child,
+.article-md-editor .ProseMirror td:last-child {
+  border-right: none;
+}
+
+.article-md-editor .ProseMirror tr:last-child > th,
+.article-md-editor .ProseMirror tr:last-child > td {
+  border-bottom: none;
+}
+
+.article-md-editor .ProseMirror th {
+  font-weight: 600;
+  background: color-mix(in srgb, var(--foreground) 5%, var(--surface-elevated));
+}
+
+.article-md-editor .ProseMirror tr[data-is-header] th {
+  border-bottom-width: 2px;
+}
+
+.article-md-editor .ProseMirror .column-resize-handle {
+  background-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.article-md-editor .ProseMirror .selectedCell::after {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.article-md-editor .ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+.article-md-editor .ProseMirror dl[data-type="footnote_definition"] {
+  margin: 1.25em 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.article-md-editor .ProseMirror dl[data-type="footnote_definition"] dt {
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0.35em 0 0.15em;
+}
+
+.article-md-editor .ProseMirror dl[data-type="footnote_definition"] dd {
+  margin: 0 0 0.5em 1rem;
+  padding: 0;
+}
+
+.article-md-editor .ProseMirror sup[data-type="footnote_reference"] {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: default;
+}
+
+.article-md-editor .ProseMirror input[type="checkbox"] {
+  margin-right: 0.35em;
+  accent-color: var(--accent);
+}
+
+/* Milkdown Vue code block (no default toolbar layout) */
+.article-md-editor {
+  /* Double-square “copy” (overlapping sheets), mask uses stroke luminance */
+  --md-code-copy-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='8' y='8' rx='2' ry='2'/%3E%3Cpath d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/%3E%3C/svg%3E");
+  --md-code-copy-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+.article-md-editor .milkdown-code-block {
+  position: relative;
+  margin: 0.75em 0;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--foreground) 5%, var(--surface-elevated));
+  /* visible so the language picker (absolute) is not clipped when the block is short */
+  overflow: visible;
+}
+
+.article-md-editor .milkdown-code-block .tools {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--foreground) 4%, var(--surface-elevated));
+  border-top-left-radius: var(--radius-md, 0.5rem);
+  border-top-right-radius: var(--radius-md, 0.5rem);
+  /* must be visible: .language-picker is abspos inside this row and extends below */
+  overflow: visible;
+}
+
+.article-md-editor .milkdown-code-block .codemirror-host {
+  overflow: hidden;
+  border-bottom-left-radius: var(--radius-md, 0.5rem);
+  border-bottom-right-radius: var(--radius-md, 0.5rem);
+}
+
+.article-md-editor .milkdown-code-block .tools-button-group {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.article-md-editor .milkdown-code-block .language-button {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: min(14rem, 55%);
+  padding: 0.3rem 0.55rem;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.article-md-editor .milkdown-code-block .language-button:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  border-color: color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.article-md-editor .milkdown-code-block .language-button .expand-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.article-md-editor .milkdown-code-block .language-picker {
+  position: absolute;
+  z-index: 200;
+  margin-top: 0.25rem;
+  min-width: 12rem;
+  overflow: visible;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.article-md-editor .milkdown-code-block .language-picker .list-wrapper {
+  display: flex;
+  flex-direction: column;
+  border-radius: inherit;
+  overflow: hidden;
+  max-height: min(18rem, 50vh);
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--foreground) 2.5%, var(--surface-elevated));
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-icon,
+.article-md-editor .milkdown-code-block .language-picker .clear-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-icon .milkdown-icon,
+.article-md-editor .milkdown-code-block .language-picker .clear-icon .milkdown-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-icon .milkdown-icon svg,
+.article-md-editor .milkdown-code-block .language-picker .clear-icon .milkdown-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--surface-elevated);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--foreground);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-input::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .search-input:focus {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.article-md-editor .milkdown-code-block .language-picker .clear-icon.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .clear-icon:not(.hidden) {
+  cursor: pointer;
+  border-radius: 0.35rem;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .clear-icon:not(.hidden):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.article-md-editor .milkdown-code-block .language-picker .language-list {
+  margin: 0;
+  padding: 0.35rem 0.4rem 0.5rem;
+  list-style: none;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Cap list height; avoid calc() that can go negative on short viewports */
+  max-height: min(14rem, 45vh);
+}
+
+.article-md-editor .milkdown-code-block .language-picker .language-list-item {
+  margin: 0.1rem 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.35rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .language-list-item:hover,
+.article-md-editor .milkdown-code-block .language-picker .language-list-item:focus-visible {
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+  outline: none;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .language-list-item.no-result {
+  color: var(--muted);
+  cursor: default;
+  font-style: normal;
+}
+
+.article-md-editor .milkdown-code-block .language-picker .language-list-item.no-result:hover {
+  background: transparent;
+}
+
+.article-md-editor .milkdown-code-block .copy-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.article-md-editor .milkdown-code-block .copy-button:hover {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+}
+
+/* Icon drawn here (config uses empty copyIcon string; avoids :empty if whitespace slips in) */
+.article-md-editor .milkdown-code-block .copy-button .milkdown-icon:not(:has(svg)) {
+  display: inline-block;
+  width: 1.125rem;
+  height: 1.125rem;
+  background-color: currentColor;
+  -webkit-mask: var(--md-code-copy-icon) center / contain no-repeat;
+  mask: var(--md-code-copy-icon) center / contain no-repeat;
+}
+
+.article-md-editor .milkdown-code-block .copy-button.code-block-copy-done .milkdown-icon:not(:has(svg)) {
+  background-color: var(--accent);
+  -webkit-mask: var(--md-code-copy-tick) center / contain no-repeat;
+  mask: var(--md-code-copy-tick) center / contain no-repeat;
+}
+
+.article-md-editor .milkdown-code-block .copy-button .milkdown-icon svg {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.article-md-editor .milkdown-code-block .codemirror-host .cm-editor {
+  font-size: 0.8125rem;
+}
+
+.article-md-editor .milkdown-code-block .codemirror-host .cm-editor.cm-focused {
+  outline: none;
+}
+
+.article-md-editor .milkdown-code-block .codemirror-host .cm-scroller {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  line-height: 1.55;
+}
+
+/* Gutter / line colors come from @uiw/codemirror-theme-vscode (light + dark). */
