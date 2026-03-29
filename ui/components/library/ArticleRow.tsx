@@ -10,7 +10,10 @@ import {
   useActiveArticle,
 } from "@/components/providers/ActiveArticleContext";
 import type { ArticlePublic } from "@/types/article.types";
-import { Input } from "@/ui/Input";
+import {
+  LibraryNameFieldError,
+  LibraryNameInput,
+} from "@/components/library/LibraryNameInput";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,17 +110,16 @@ export function ArticleRow({ article, onRequestDelete }: Props) {
   return (
     <div
       ref={rowRef}
-      className={`group flex min-w-0 items-center gap-0.5 rounded-md py-0.5 pl-1.5 pr-0.5 text-xs leading-snug hover:bg-muted/10 ${
+      className={`group flex min-w-0 items-center gap-0.5 rounded-md py-0 pl-1.5 pr-0.5 text-xs leading-tight hover:bg-muted/10 ${
         active ? "bg-muted/15" : ""
       }`}
     >
       {editing ? (
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          <IconFileText className="size-3.5 shrink-0 text-accent" aria-hidden />
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <IconFileText className="size-3 shrink-0 text-accent" aria-hidden />
           <div className="min-w-0 flex-1">
-            <Input
+            <LibraryNameInput
               ref={inputRef}
-              className="h-7 py-0.5 text-xs leading-tight"
               value={draft}
               disabled={submitting}
               aria-label="File name"
@@ -133,30 +135,27 @@ export function ArticleRow({ article, onRequestDelete }: Props) {
                 }
               }}
             />
-            {renameError ? (
-              <p className="mt-0.5 text-xs text-red-600 dark:text-red-400">
-                {renameError}
-              </p>
-            ) : null}
+            <LibraryNameFieldError>{renameError}</LibraryNameFieldError>
           </div>
         </div>
       ) : (
         <Link
           href={href}
-          className="flex min-w-0 flex-1 items-center gap-1.5 text-foreground"
+          className="flex min-w-0 flex-1 items-center gap-1 text-foreground"
           title={article.title}
         >
-          <IconFileText className="size-3.5 shrink-0 text-accent" aria-hidden />
+          <IconFileText className="size-3 shrink-0 text-accent" aria-hidden />
           <span className="min-w-0 truncate">{article.title}</span>
         </Link>
       )}
       {!editing ? (
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="app-btn--icon h-7 min-w-7 shrink-0 px-0 text-foreground"
+            plain
+            className="library-toolbar-btn--sm"
             ariaLabel={`Actions for ${article.title}`}
           >
-            <IconMoreHorizontal className="mx-auto size-4" />
+            <IconMoreHorizontal className="size-3.5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem

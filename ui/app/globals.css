@@ -203,6 +203,13 @@ button.library-toolbar-btn:focus-visible {
   outline-offset: 2px;
 }
 
+/* Compact hit target for library file/folder rows (narrower than header toolbar). */
+button.library-toolbar-btn.library-toolbar-btn--sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.375rem;
+}
+
 button.library-toolbar-btn svg {
   display: block;
   width: 1rem;
@@ -210,6 +217,11 @@ button.library-toolbar-btn svg {
   flex-shrink: 0;
   color: var(--foreground);
   stroke: var(--foreground);
+}
+
+button.library-toolbar-btn.library-toolbar-btn--sm svg {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 button.library-toolbar-btn svg path,

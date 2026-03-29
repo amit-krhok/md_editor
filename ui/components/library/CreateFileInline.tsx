@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-import { Input } from "@/ui/Input";
+import {
+  LibraryNameFieldError,
+  LibraryNameInput,
+} from "@/components/library/LibraryNameInput";
 
 type Props = {
   onSubmit: (title: string) => void | Promise<void>;
@@ -20,10 +23,9 @@ export function CreateFileInline({
   const [value, setValue] = useState("");
 
   return (
-    <div className="border-b border-border px-2 py-1.5">
-      <Input
+    <div className="border-b border-border px-2 py-0.5">
+      <LibraryNameInput
         autoFocus
-        className="h-7 py-0.5 text-xs leading-tight"
         placeholder="File name"
         value={value}
         disabled={disabled}
@@ -41,9 +43,7 @@ export function CreateFileInline({
           }
         }}
       />
-      {error ? (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
-      ) : null}
+      <LibraryNameFieldError>{error}</LibraryNameFieldError>
     </div>
   );
 }

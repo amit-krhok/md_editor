@@ -299,7 +299,7 @@ export const LibraryPane = observer(function LibraryPane() {
               error={createFileError}
             />
           ) : null}
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-1">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-0.5">
             {loading ? (
               <div className="flex justify-center py-6">
                 <Spinner className="size-5" />
@@ -356,7 +356,7 @@ export const LibraryPane = observer(function LibraryPane() {
                           </li>
                         ) : null}
                         {loadingFolderId === folder.id ? (
-                          <li className="flex justify-center py-2">
+                          <li className="flex justify-center py-1">
                             <Spinner className="size-4" />
                           </li>
                         ) : (
