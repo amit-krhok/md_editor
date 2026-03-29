@@ -3,6 +3,8 @@ import { Plugin, PluginKey, TextSelection } from "@milkdown/prose/state";
 import type { EditorView } from "@milkdown/prose/view";
 import { $prose, replaceRange } from "@milkdown/kit/utils";
 
+import { findEmojiQuery } from "@/components/article/emoji-autocomplete/find-emoji-query";
+
 import { findSlashQuery } from "./find-slash";
 import { filterSlashCommands } from "./registry";
 import type { SlashCommand } from "./types";
@@ -383,6 +385,11 @@ export const slashCommandPlugin = $prose((ctx: Ctx) => {
 
         const slash = findSlashQuery(newState);
         if (!slash) {
+          return { mode: "idle" };
+        }
+
+        const emojiHit = findEmojiQuery(newState);
+        if (emojiHit && emojiHit.from > slash.from) {
           return { mode: "idle" };
         }
 

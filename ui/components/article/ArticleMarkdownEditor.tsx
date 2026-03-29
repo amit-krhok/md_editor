@@ -32,6 +32,7 @@ import {
   emojiShortcodeInputRule,
   remarkEmojiPlugin,
 } from "@/components/article/milkdown-plugins";
+import { emojiAutocompletePlugin } from "@/components/article/emoji-autocomplete";
 import { slashCommandPlugin } from "@/components/article/slash-commands";
 import {
   taskListListItemExtension,
@@ -42,6 +43,7 @@ import "prosemirror-tables/style/tables.css";
 import "@milkdown/kit/prose/view/style/prosemirror.css";
 import "@/styles/article-milkdown.css";
 import "@/styles/article-slash-commands.css";
+import "@/styles/article-emoji-autocomplete.css";
 
 const CrepeCtx = createSlice({}, "CrepeCtx");
 const FeaturesCtx = createSlice([], "FeaturesCtx");
@@ -84,6 +86,7 @@ function createArticleEditor(
     .use(taskListListItemExtension[1])
     .use(taskListTogglePlugin)
     .use(slashCommandPlugin)
+    .use(emojiAutocompletePlugin)
     .config((ctx) => {
       ctx.get(listenerCtx).markdownUpdated((_c, markdown) => {
         onMarkdownChange(markdown);
