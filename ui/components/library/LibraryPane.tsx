@@ -12,7 +12,10 @@ import {
   deleteArticle,
   listArticlesInFolder,
   listArticlesWithoutFolder,
+  moveArticleToFolder,
+  moveArticleToLibraryRoot,
 } from "@/lib/api/articles";
+import { ARTICLE_DRAG_MIME } from "@/lib/dnd";
 import { createFolder, listFolders, updateFolder } from "@/lib/api/folders";
 import { ApiError } from "@/lib/api/http";
 import { useAuthStore } from "@/stores/store-context";
@@ -61,6 +64,9 @@ export const LibraryPane = observer(function LibraryPane() {
   const [deleteArticleTarget, setDeleteArticleTarget] =
     useState<ArticlePublic | null>(null);
   const [deleteArticleBusy, setDeleteArticleBusy] = useState(false);
+  const [movingArticleId, setMovingArticleId] = useState<string | null>(null);
+  const [libraryMoveError, setLibraryMoveError] = useState<string | null>(null);
+  const [rootDropActive, setRootDropActive] = useState(false);
 
   const loadLibrary = useCallback(async () => {
     if (!token) return;
@@ -230,6 +236,98 @@ export const LibraryPane = observer(function LibraryPane() {
     });
   }, []);
 
+  /** Apply server response after moving an article between root and folders. */
+  const applyArticleMove = useCallback((updated: ArticlePublic) => {
+    const id = updated.id;
+    setArticles((prev) => {
+      const rest = prev.filter((a) => a.id !== id);
+      return updated.folder_id ? rest : [updated, ...rest];
+    });
+    setFolderArticles((prev) => {
+      const next: Record<string, ArticlePublic[]> = {};
+      for (const [k, list] of Object.entries(prev)) {
+        next[k] = list.filter((a) => a.id !== id);
+      }
+      if (updated.folder_id) {
+        const fid = updated.folder_id;
+        next[fid] = [updated, ...(next[fid] ?? [])];
+      }
+      return next;
+    });
+  }, []);
+
+  const findArticleById = useCallback(
+    (articleId: string): ArticlePublic | undefined => {
+      for (const a of articles) {
+        if (a.id === articleId) return a;
+      }
+      for (const list of Object.values(folderArticles)) {
+        const a = list.find((x) => x.id === articleId);
+        if (a) return a;
+      }
+      return undefined;
+    },
+    [articles, folderArticles],
+  );
+
+  const handleArticleDroppedOnFolder = useCallback(
+    async (folderId: string, articleId: string) => {
+      if (!token) return;
+      const src = findArticleById(articleId);
+      if (!src || src.folder_id === folderId) return;
+      setLibraryMoveError(null);
+      setMovingArticleId(articleId);
+      try {
+        const updated = await moveArticleToFolder(token, articleId, folderId);
+        applyArticleMove(updated);
+        setExpandedFolderIds((prev) => new Set(prev).add(folderId));
+        loadedFolderIdsRef.current.add(folderId);
+      } catch (e) {
+        setLibraryMoveError(
+          e instanceof ApiError
+            ? e.message
+            : e instanceof Error
+              ? e.message
+              : "Could not move file",
+        );
+      } finally {
+        setMovingArticleId(null);
+      }
+    },
+    [token, findArticleById, applyArticleMove],
+  );
+
+  const handleArticleDroppedOnLibraryRoot = useCallback(
+    async (articleId: string) => {
+      if (!token) return;
+      const src = findArticleById(articleId);
+      if (!src || src.folder_id == null) return;
+      setLibraryMoveError(null);
+      setMovingArticleId(articleId);
+      try {
+        const updated = await moveArticleToLibraryRoot(token, articleId);
+        applyArticleMove(updated);
+      } catch (e) {
+        setLibraryMoveError(
+          e instanceof ApiError
+            ? e.message
+            : e instanceof Error
+              ? e.message
+              : "Could not move file to library",
+        );
+      } finally {
+        setMovingArticleId(null);
+      }
+    },
+    [token, findArticleById, applyArticleMove],
+  );
+
+  useEffect(() => {
+    if (!libraryMoveError) return;
+    const t = window.setTimeout(() => setLibraryMoveError(null), 5000);
+    return () => window.clearTimeout(t);
+  }, [libraryMoveError]);
+
   const handleConfirmDeleteArticle = useCallback(async () => {
     if (!token || !deleteArticleTarget) return;
     const id = deleteArticleTarget.id;
@@ -299,6 +397,11 @@ export const LibraryPane = observer(function LibraryPane() {
               error={createFileError}
             />
           ) : null}
+          {libraryMoveError ? (
+            <p className="px-2 pb-1 text-xs text-red-600 dark:text-red-400">
+              {libraryMoveError}
+            </p>
+          ) : null}
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-0.5">
             {loading ? (
               <div className="flex justify-center py-6">
@@ -314,14 +417,60 @@ export const LibraryPane = observer(function LibraryPane() {
               </p>
             ) : (
               <ul className="space-y-0">
-                {articles.map((article) => (
-                  <li key={article.id}>
-                    <ArticleRow
-                      article={article}
-                      onRequestDelete={setDeleteArticleTarget}
-                    />
-                  </li>
-                ))}
+                <li className="list-none">
+                  <div
+                    className={`rounded-md transition-colors ${
+                      rootDropActive
+                        ? "bg-accent/10 ring-1 ring-accent/35 ring-inset"
+                        : ""
+                    } ${
+                      articles.length === 0 && folders.length > 0
+                        ? "min-h-7 py-0.5"
+                        : ""
+                    }`}
+                    onDragEnter={(e) => {
+                      if (!e.dataTransfer.types.includes(ARTICLE_DRAG_MIME))
+                        return;
+                      e.preventDefault();
+                      setRootDropActive(true);
+                    }}
+                    onDragLeave={(e) => {
+                      if (
+                        !(e.currentTarget as HTMLElement).contains(
+                          e.relatedTarget as Node,
+                        )
+                      ) {
+                        setRootDropActive(false);
+                      }
+                    }}
+                    onDragOver={(e) => {
+                      if (!e.dataTransfer.types.includes(ARTICLE_DRAG_MIME))
+                        return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(e) => {
+                      setRootDropActive(false);
+                      if (!e.dataTransfer.types.includes(ARTICLE_DRAG_MIME))
+                        return;
+                      e.preventDefault();
+                      const id = e.dataTransfer.getData(ARTICLE_DRAG_MIME);
+                      if (id) void handleArticleDroppedOnLibraryRoot(id);
+                    }}
+                  >
+                    <ul className="m-0 list-none space-y-0 p-0">
+                      {articles.map((article) => (
+                        <li key={article.id}>
+                          <ArticleRow
+                            article={article}
+                            onRequestDelete={setDeleteArticleTarget}
+                            moveBusy={movingArticleId === article.id}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
                 {folders.map((folder) => (
                   <li key={folder.id}>
                     <FolderRow
@@ -338,6 +487,9 @@ export const LibraryPane = observer(function LibraryPane() {
                         void ensureFolderArticlesLoaded(f.id);
                       }}
                       onRename={handleRenameFolder}
+                      onArticleDropped={(articleId) =>
+                        void handleArticleDroppedOnFolder(folder.id, articleId)
+                      }
                     />
                     {expandedFolderIds.has(folder.id) ? (
                       <ul className="ml-3 border-l border-border py-0 pl-1.5">
@@ -365,6 +517,7 @@ export const LibraryPane = observer(function LibraryPane() {
                               <ArticleRow
                                 article={article}
                                 onRequestDelete={setDeleteArticleTarget}
+                                moveBusy={movingArticleId === article.id}
                               />
                             </li>
                           ))

@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/DropdownMenu";
 
+import { ARTICLE_DRAG_MIME } from "@/lib/dnd";
+
 import {
   IconFileText,
   IconMoreHorizontal,
@@ -31,9 +33,15 @@ import {
 type Props = {
   article: ArticlePublic;
   onRequestDelete: (article: ArticlePublic) => void;
+  /** Dim row while a move request is in flight for this article. */
+  moveBusy?: boolean;
 };
 
-export function ArticleRow({ article, onRequestDelete }: Props) {
+export function ArticleRow({
+  article,
+  onRequestDelete,
+  moveBusy = false,
+}: Props) {
   const pathname = usePathname();
   const { patchArticleTitle } = useActiveArticle();
   const href = ROUTES.article(article.id);
@@ -110,8 +118,20 @@ export function ArticleRow({ article, onRequestDelete }: Props) {
   return (
     <div
       ref={rowRef}
+      draggable={!editing}
+      title={editing ? undefined : "Drag into a folder to move"}
+      onDragStart={(e) => {
+        if (editing) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.setData(ARTICLE_DRAG_MIME, article.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       className={`group flex min-w-0 items-center gap-0.5 rounded-md py-0 pl-1.5 pr-0.5 text-xs leading-tight hover:bg-muted/10 ${
-        active ? "bg-muted/15" : ""
+        editing ? "" : "cursor-grab active:cursor-grabbing"
+      } ${active ? "bg-muted/15" : ""} ${
+        moveBusy ? "pointer-events-none opacity-50" : ""
       }`}
     >
       {editing ? (
@@ -141,6 +161,7 @@ export function ArticleRow({ article, onRequestDelete }: Props) {
       ) : (
         <Link
           href={href}
+          draggable={false}
           className="flex min-w-0 flex-1 items-center gap-1 text-foreground"
           title={article.title}
         >

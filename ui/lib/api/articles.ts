@@ -43,7 +43,7 @@ export async function getArticle(
 export async function updateArticle(
   token: string,
   articleId: string,
-  body: { title?: string; content?: string },
+  body: { title?: string; content?: string; folder_id?: string | null },
 ): Promise<ArticlePublic> {
   return apiJson<ArticlePublic>(`/articles/${articleId}`, {
     method: "PATCH",
@@ -51,6 +51,28 @@ export async function updateArticle(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+}
+
+/** Move article into a folder (`POST /articles/{id}/move`). */
+export async function moveArticleToFolder(
+  token: string,
+  articleId: string,
+  folderId: string,
+): Promise<ArticlePublic> {
+  return apiJson<ArticlePublic>(`/articles/${articleId}/move`, {
+    method: "POST",
+    token,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ folder_id: folderId }),
+  });
+}
+
+/** Remove article from any folder (library root). */
+export async function moveArticleToLibraryRoot(
+  token: string,
+  articleId: string,
+): Promise<ArticlePublic> {
+  return updateArticle(token, articleId, { folder_id: null });
 }
 
 export async function deleteArticle(

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ARTICLE_DRAG_MIME } from "@/lib/dnd";
 import { ApiError } from "@/lib/api/http";
 import type { FolderPublic } from "@/types/folder.types";
 import {
@@ -30,6 +31,7 @@ type Props = {
   onRequestDelete: (folder: FolderPublic) => void;
   onRequestCreateFile: (folder: FolderPublic) => void;
   onRename: (folderId: string, name: string) => Promise<void>;
+  onArticleDropped?: (articleId: string) => void | Promise<void>;
 };
 
 export function FolderRow({
@@ -39,8 +41,10 @@ export function FolderRow({
   onRequestDelete,
   onRequestCreateFile,
   onRename,
+  onArticleDropped,
 }: Props) {
   const rowRef = useRef<HTMLDivElement>(null);
+  const [articleDragOver, setArticleDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(folder.name);
@@ -114,8 +118,44 @@ export function FolderRow({
     }
   }, [draft, folder.id, folder.name, onRename, cancelEdit]);
 
+  const canAcceptArticleDrop =
+    Boolean(onArticleDropped) && !editing && !submitting;
+
   return (
-    <div ref={rowRef} className="group flex min-w-0 items-center gap-0.5 rounded-md py-0 pl-1.5 pr-0.5 hover:bg-muted/10">
+    <div
+      ref={rowRef}
+      className={`group flex min-w-0 items-center gap-0.5 rounded-md py-0 pl-1.5 pr-0.5 hover:bg-muted/10 ${
+        articleDragOver && canAcceptArticleDrop
+          ? "bg-accent/10 ring-1 ring-accent/35 ring-inset"
+          : ""
+      }`}
+      onDragEnter={(e) => {
+        if (!canAcceptArticleDrop) return;
+        if (!e.dataTransfer.types.includes(ARTICLE_DRAG_MIME)) return;
+        e.preventDefault();
+        setArticleDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (!canAcceptArticleDrop) return;
+        if (!rowRef.current?.contains(e.relatedTarget as Node)) {
+          setArticleDragOver(false);
+        }
+      }}
+      onDragOver={(e) => {
+        if (!canAcceptArticleDrop) return;
+        if (!e.dataTransfer.types.includes(ARTICLE_DRAG_MIME)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(e) => {
+        if (!canAcceptArticleDrop || !onArticleDropped) return;
+        setArticleDragOver(false);
+        if (!e.dataTransfer.types.includes(ARTICLE_DRAG_MIME)) return;
+        e.preventDefault();
+        const id = e.dataTransfer.getData(ARTICLE_DRAG_MIME);
+        if (id) void onArticleDropped(id);
+      }}
+    >
       <button
         type="button"
         className="library-toolbar-btn library-toolbar-btn--sm shrink-0 rounded-md"
