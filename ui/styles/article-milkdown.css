@@ -325,22 +325,25 @@
   opacity: 0.75;
 }
 
+/*
+ * `.language-picker` stays mounted when closed (empty shell). Border/chrome on the shell
+ * drew a thin line; put visuals only on `.list-wrapper`, which exists while open.
+ */
 .article-md-editor .milkdown-code-block .language-picker {
   position: absolute;
   z-index: 200;
   margin-top: 0.25rem;
-  min-width: 12rem;
   overflow: visible;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border);
-  background: var(--surface-elevated);
-  box-shadow: 0 10px 40px color-mix(in srgb, var(--foreground) 12%, transparent);
 }
 
 .article-md-editor .milkdown-code-block .language-picker .list-wrapper {
   display: flex;
   flex-direction: column;
-  border-radius: inherit;
+  min-width: 12rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--foreground) 12%, transparent);
   overflow: hidden;
   max-height: min(18rem, 50vh);
 }
