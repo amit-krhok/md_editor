@@ -1,8 +1,5 @@
 # md_editor
 
-> ✍️ _This I made for the love of markdown._  
-> (Also because cloud note apps keep “improving” until they’re unusable. 🙃)
-
 A **Docker-first**, **self-hosted**, **actually yours** markdown workspace. Not SaaS. Not “AI-powered synergy.” Just files, folders, and the sweet sound of `|` pipes in tables.
 
 ---
