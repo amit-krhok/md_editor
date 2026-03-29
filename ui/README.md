@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# md_editor — UI (Next.js)
 
-## Getting Started
+> ✍️ _This I made for the love of markdown._  
+> (The editor is WYSIWYG until it isn’t. That’s called *character*.)
 
-First, run the development server:
+This is **not** a stock `create-next-app` demo anymore. It’s the **face** of [md_editor](../README.md): login, folders, articles, and a Milkdown-powered editor that’s smarter than your average `<textarea>`.
+
+---
+
+## 🚀 Dev server (when Docker feels like overkill)
 
 ```bash
+npm install   # first time, unless you enjoy errors
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3045](http://localhost:3045) with your browser to see the result.
+Open **[http://localhost:3045](http://localhost:3045)** — because **3000** was too mainstream.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You’ll want the **API** running too (Docker or local FastAPI), or you’ll get very good at staring at auth errors. See **[../README.md](../README.md)** and **[../backend/README.md](../backend/README.md)**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🎨 What’s in the tin (high level)
 
-To learn more about Next.js, take a look at the following resources:
+- 📝 **Milkdown + GFM** — Markdown editing that doesn’t hate tables *as much* as plain text does  
+- 🔑 **Auth UI** — Register / login; tokens; the usual “who are you” theatre  
+- 📂 **Folders & articles** — Organize, rename, move on; we’re not judging (much)  
+- ⌨️ **Slash commands** — Type `/` and pretend you’re in Notion (you’re not; you’re cooler)  
+- 🖨️ **Print / PDF-ish flows** — Where supported — browser print dialog, the UI’s favorite modal  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Stack highlights: **Next.js (App Router)**, **MobX**, **Tailwind**, **TypeScript** — so your bundle is *modern* and your types are *sometimes* honest.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🐳 Docker / production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Don’t deploy this folder alone like it’s 2015. Use **root `docker-compose`**: nginx, API, Postgres, **this** UI. Rebuild with the correct **`NEXT_PUBLIC_API_URL`** or enjoy CORS and broken fetches in production. (Spoiler: you won’t enjoy them.)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Details: **[../README.md](../README.md)** — especially the “rebuild UI with public API URL” bit. Yes, it’s annoying. Yes, it’s on purpose.
+
+---
+
+## 📚 Further reading
+
+- 🏠 **[../README.md](../README.md)** — Docker, TLS, checklist, life advice  
+- 🐍 **[../backend/README.md](../backend/README.md)** — API routes, JWT, “why is my token wrong”  
+
+---
+
+Built with **Next.js** and friends; their licenses apply. Any rough edges in the UI are *artisanal*.

@@ -1,45 +1,62 @@
 # md_editor
 
-A docker based self-hosted simple markdown editor for personal use.
+> ✍️ _This I made for the love of markdown._  
+> (Also because cloud note apps keep “improving” until they’re unusable. 🙃)
 
-## Tech Stack
+A **Docker-first**, **self-hosted**, **actually yours** markdown workspace. Not SaaS. Not “AI-powered synergy.” Just files, folders, and the sweet sound of `|` pipes in tables.
 
-- FastAPI
-- React+Next
-- PostgreSQL
+---
 
-## Docker Compose
+## 🧰 Tech stack (the greatest hits)
 
-- **Networks** — **`md_editor_backend`** (`internal: true`): `db`, `api`, `ui` only. **`md_editor_frontend`**: **`nginx` only** (plus its attachment to the backend net so it can proxy). Nothing else sits on the frontend network, so the split is “edge vs app/data plane”.
-- **nginx** — `http://localhost` (and `:443` when you add TLS) proxies `/` → Next.js (`ui:3045`) and `/api/` → FastAPI (`api:8000`).
-- **ui** — also on `http://localhost:3045` for direct access.
-- **api** — `http://localhost:8005` for direct API calls.
+- ⚡ **FastAPI** — Python goes brrr, OpenAPI docs for people who read docs
+- ⚛️ **React + Next.js** — Yes, another Next app. It’s fine. You’ll survive.
+- 🐘 **PostgreSQL** — Because your notes deserve a real database, not `localStorage` roulette
 
-To harden further, drop the **`8005`** / **`3045`** port mappings so only nginx is reachable from the host.
+---
 
-HTTPS: copy `nginx/conf.d/zz-https.local.conf.example` to `nginx/conf.d/zz-https.local.conf` (gitignored), put certs in `./certs/`, then `docker compose up -d --build`. Tune `server_name` and paths only in that local file.
+## 🐳 Docker Compose — who talks to whom
 
-## Production checklist
+- 🕸️ **Networks** — **`md_editor_backend`** (`internal: true`): `db`, `api`, `ui` huddle together like introverts at a party. **`md_editor_frontend`**: **`nginx` only** (plus a polite tether to the backend net for proxying). Translation: **edge** vs **“please don’t expose Postgres to the internet”** plane.
+- 🚪 **nginx** — `http://localhost` (and `:443` when you stop procrastinating on TLS) sends `/` → Next (`ui:3045`) and `/api/` → FastAPI (`api:8000`).
+- 🖥️ **ui** — [http://localhost:3045](http://localhost:3045) if you _must_ skip nginx. (You don’t _have_ to. But you _can_.)
+- 🔌 **api** — `http://localhost:8005` for curl warriors and “just one quick request.”
 
-1. **Secrets on the server** — Create a real `.env` (never commit). Set a long random **`JWT_SECRET_KEY`**, strong **`POSTGRES_PASSWORD`**, and unique DB user if you like. Remove or replace any dev defaults from `.env.example`.
+🔒 **Hardening (recommended):** rip out the **`8005`** / **`3045`** host mappings so strangers stop at **nginx** and don’t tour your stack.
 
-2. **CORS** — Set **`CORS_ORIGINS`** to your public site origin(s), e.g. `https://editor.example.com` (comma-separated if several). The API must allow the exact origin the browser uses for the UI.
+🔐 **HTTPS (when you’re ready):** copy `nginx/conf.d/zz-https.local.conf.example` → `nginx/conf.d/zz-https.local.conf` (gitignored), drop certs in `./certs/`, `docker compose up -d --build`. Edit `server_name` and paths **only** in that local file—because committing your infra dreams is a different hobby.
 
-3. **HTTPS** — Obtain TLS certs (e.g. Let’s Encrypt). Place **`fullchain.pem`** and **`privatekey.pem`** under **`certs/`** (or set **`MD_EDITOR_CERT_DIR`**). Copy **`nginx/conf.d/zz-https.local.conf.example`** → **`zz-https.local.conf`**, set **`server_name`** to your domain, enable OCSP stapling only if you use a public CA and add a **`resolver`** (see comments in the example).
+---
 
-4. **Rebuild the UI with the public API URL** — `NEXT_PUBLIC_*` is baked in at **build** time. After HTTPS and domain are fixed, build with the URL browsers will use, e.g.  
+## 🎓 Production checklist (read this or enjoy regret)
+
+1. 🔑 **Secrets** — Real `.env` on the server. **`JWT_SECRET_KEY`**: long, random, not `changeme`. **`POSTGRES_PASSWORD`**: same energy. Never commit. `.env.example` is a _hint_, not a dare.
+
+2. 🌍 **CORS** — Set **`CORS_ORIGINS`** to the _exact_ origin the browser uses. Typos here = hours of “it works on my machine” (it doesn’t).
+
+3. 🔒 **HTTPS** — Certs (Let’s Encrypt, your CA of choice, etc.). **`fullchain.pem`** + **`privatekey.pem`** in **`certs/`** (or **`MD_EDITOR_CERT_DIR`**). Copy the nginx HTTPS example → local conf, set **`server_name`**. OCSP stapling: only if you know what that means; comments in the example are your friend.
+
+4. 🏗️ **Rebuild UI with the real API URL** — `NEXT_PUBLIC_*` is **baked at build time**, not runtime. Surprise! Rebuild after you fix the domain, e.g.  
    `NEXT_PUBLIC_API_URL=https://editor.example.com/api docker compose build ui --no-cache`  
-   then **`docker compose up -d`**.
+   then `docker compose up -d`.
 
-5. **Shrink the attack surface** — In **`docker-compose.yml`**, remove host mappings **`8005:8000`** and **`3045:3045`** so only **nginx** (`80`/`443`) is reachable from outside.
+5. 🎯 **Shrink the surface** — Remove **`8005:8000`** and **`3045:3045`** from **`docker-compose.yml`** so the world only knocks on **80/443**. Revolutionary.
 
-6. **Access control** — Set **`SUPERUSER_EMAILS`** (or your app’s equivalent) so trusted accounts are activated; review registration/login behavior for a public deployment.
+6. 👮 **Access control** — **`SUPERUSER_EMAILS`** (or equivalent): who gets to exist when registration is a thing. Review login/register before you paste the URL in a group chat.
 
-7. **Data and logs** — The Postgres volume **`postgres_data_md_editor`** holds all DB data: include it in backups. **`./logs`** is mounted into the API container for app logs.
+7. 💾 **Data & logs** — Volume **`postgres_data_md_editor`** = your life story. Back it up. **`./logs`** in the API container = breadcrumbs when something whines.
 
-8. **Host firewall** — Allow inbound **`80`/`443`** (and **`22`** or your admin path) only; block direct exposure of Postgres and optional debug ports.
+8. 🧱 **Firewall** — **80/443** (and **22** if you SSH like a civilized person). Not: Postgres on the public timeline.
 
-9. **Updates** — Rebuild images after code changes (`docker compose build` / `up -d`); run DB migrations if your backend adds them.
+9. 🔄 **Updates** — Rebuild images when code moves. Run **Alembic** migrations when the backend says so. Ignoring migrations is a personality, not a strategy.
 
-This project uses open-source libraries including Milkdown, CodeMirror, and others.
-All respective licenses apply to their components.
+---
+
+## 📚 More reading
+
+- 🐍 **[backend/README.md](backend/README.md)** — API features, routes, and JWT drama
+- 🖼️ **[ui/README.md](ui/README.md)** — Next dev server, Milkdown, and “why is my port 3045”
+
+---
+
+Built with open-source goodies (Milkdown, CodeMirror, and friends). Their licenses apply; blame them for the good parts.
