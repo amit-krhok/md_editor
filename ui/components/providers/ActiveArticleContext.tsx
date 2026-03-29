@@ -32,6 +32,8 @@ type Ctx = {
   ) => Promise<{ title: string }>;
   contentSaveStatus: ArticleContentSaveStatus;
   setContentSaveStatus: Dispatch<SetStateAction<ArticleContentSaveStatus>>;
+  /** ArticleWorkspace keeps this in sync for share / export. */
+  openArticleMarkdownRef: React.MutableRefObject<string>;
 };
 
 const ActiveArticleContext = createContext<Ctx | null>(null);
@@ -47,6 +49,7 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
   const [contentSaveStatus, setContentSaveStatus] =
     useState<ArticleContentSaveStatus>("idle");
   const syncLibraryTitles = useRef<(id: string, title: string) => void>(() => {});
+  const openArticleMarkdownRef = useRef<string>("");
 
   const patchArticleTitle = useCallback(
     async (articleId: string, title: string) => {
@@ -77,6 +80,7 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
       patchArticleTitle,
       contentSaveStatus,
       setContentSaveStatus,
+      openArticleMarkdownRef,
     }),
     [snapshot, patchArticleTitle, contentSaveStatus],
   );

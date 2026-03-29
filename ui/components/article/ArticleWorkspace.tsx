@@ -23,7 +23,12 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
 }: Props) {
   const auth = useAuthStore();
   const token = auth.token;
-  const { snapshot, setSnapshot, setContentSaveStatus } = useActiveArticle();
+  const {
+    snapshot,
+    setSnapshot,
+    setContentSaveStatus,
+    openArticleMarkdownRef,
+  } = useActiveArticle();
   const [article, setArticle] = useState<ArticlePublic | null>(null);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
@@ -34,6 +39,13 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   const savedIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   contentRef.current = content;
+
+  useEffect(() => {
+    openArticleMarkdownRef.current = content;
+    return () => {
+      openArticleMarkdownRef.current = "";
+    };
+  }, [content, openArticleMarkdownRef]);
 
   const clearSavedIdleTimer = useCallback(() => {
     if (savedIdleTimerRef.current != null) {

@@ -19,6 +19,7 @@ import { Input } from "@/ui/Input";
 import { Spinner } from "@/ui/Spinner";
 
 import { SettingsMenu } from "./SettingsMenu";
+import { ShareMenu } from "./ShareMenu";
 
 const ARTICLE_PATH_UUID_RE =
   /^\/([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
@@ -219,6 +220,9 @@ export function AppHeader() {
         <div className="flex h-8 max-h-8 shrink-0 items-center gap-1 overflow-visible">
           {showTitleChip ? (
             <ArticleSaveIndicator status={contentSaveStatus} />
+          ) : null}
+          {showTitleChip ? (
+            <ShareMenu key={snapshot.id} articleTitle={snapshot.title} />
           ) : null}
           <SettingsMenu showSignOut />
         </div>
