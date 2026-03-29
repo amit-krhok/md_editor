@@ -3,6 +3,7 @@
  */
 
 .article-md-editor {
+  position: relative;
   min-height: min(70vh, 36rem);
 }
 
