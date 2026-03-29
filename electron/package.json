@@ -26,7 +26,42 @@
       "category": "public.app-category.developer-tools"
     },
     "files": [
-      "**/*"
+      "**/*",
+      "!packaged.env.example"
+    ],
+    "extraResources": [
+      {
+        "from": "../docker-compose.electron.yml",
+        "to": "."
+      },
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/__pycache__",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!**/.venv",
+          "!**/.venv/**",
+          "!**/.pytest_cache/**"
+        ]
+      },
+      {
+        "from": "../ui",
+        "to": "ui",
+        "filter": [
+          "**/*",
+          "!**/node_modules",
+          "!**/node_modules/**",
+          "!**/.next",
+          "!**/.next/**"
+        ]
+      },
+      {
+        "from": "packaged.env.example",
+        "to": "packaged.env.example"
+      }
     ]
   }
 }

@@ -10,8 +10,6 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:${DB_PORT}/${POSTGRES_DB}
       LOG_DIR: /app/logs
-    volumes:
-      - ./logs:/app/logs
     restart: always
   ui:
     container_name: md_editor_ui
@@ -19,7 +17,7 @@ services:
       context: ./ui
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8005}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8005}
     environment:
       PORT: "3045"
     ports:
@@ -27,6 +25,3 @@ services:
     depends_on:
       - api
     restart: always
-
-volumes:
-  postgres_data_md_editor:
