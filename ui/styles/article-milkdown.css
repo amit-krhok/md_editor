@@ -152,6 +152,8 @@
 
 .article-md-editor .ProseMirror img {
   max-width: 100%;
+  max-height: min(65vh, 28rem);
+  width: auto;
   height: auto;
   border-radius: var(--radius-md, 0.5rem);
   margin: 0.5em 0;
