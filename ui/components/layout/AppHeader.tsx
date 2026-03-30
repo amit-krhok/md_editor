@@ -173,7 +173,7 @@ function ArticleTitleChip({
 
 export function AppHeader() {
   const pathname = usePathname() ?? "";
-  const { snapshot, contentSaveStatus } = useActiveArticle();
+  const { snapshot, setSnapshot, contentSaveStatus } = useActiveArticle();
   const { libraryCollapsed, expandLibrary } = useLibraryPaneUi();
 
   const pathMatch = pathname.match(ARTICLE_PATH_UUID_RE);
@@ -214,6 +214,11 @@ export function AppHeader() {
                 articleId={snapshot.id}
                 title={snapshot.title}
               />
+              {snapshot.isPubliclyAccessible ? (
+                <span className="inline-flex shrink-0 items-center rounded-full border border-emerald-200 bg-emerald-100 px-1.5 py-0 text-[10px] font-medium leading-4 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  Public
+                </span>
+              ) : null}
             </>
           ) : null}
         </div>
@@ -226,6 +231,14 @@ export function AppHeader() {
               key={snapshot.id}
               articleId={snapshot.id}
               articleTitle={snapshot.title}
+              initialIsPubliclyAccessible={snapshot.isPubliclyAccessible}
+              onPublicAccessibilityChange={(isPublic) =>
+                setSnapshot((prev) =>
+                  prev && prev.id === snapshot.id
+                    ? { ...prev, isPubliclyAccessible: isPublic }
+                    : prev,
+                )
+              }
             />
           ) : null}
           <SettingsMenu showSignOut />

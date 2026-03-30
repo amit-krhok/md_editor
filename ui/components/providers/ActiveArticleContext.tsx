@@ -17,13 +17,17 @@ import { updateArticle as updateArticleRequest } from "@/lib/api/articles";
 import { ApiError } from "@/lib/api/http";
 import { useAuthStore } from "@/stores/store-context";
 
-export type ActiveArticleSnapshot = { id: string; title: string };
+export type ActiveArticleSnapshot = {
+  id: string;
+  title: string;
+  isPubliclyAccessible: boolean;
+};
 
 export type ArticleContentSaveStatus = "idle" | "saving" | "saved";
 
 type Ctx = {
   snapshot: ActiveArticleSnapshot | null;
-  setSnapshot: (s: ActiveArticleSnapshot | null) => void;
+  setSnapshot: Dispatch<SetStateAction<ActiveArticleSnapshot | null>>;
   /** LibraryPane assigns: update root + folder article lists by id. */
   syncLibraryTitles: React.MutableRefObject<(id: string, title: string) => void>;
   patchArticleTitle: (
@@ -64,7 +68,13 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
         title: trimmed,
       });
       setSnapshot((s) =>
-        s?.id === articleId ? { id: articleId, title: updated.title } : s,
+        s?.id === articleId
+          ? {
+              id: articleId,
+              title: updated.title,
+              isPubliclyAccessible: updated.is_publicly_accessible,
+            }
+          : s,
       );
       syncLibraryTitles.current(articleId, updated.title);
       return { title: updated.title };

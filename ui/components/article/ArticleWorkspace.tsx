@@ -106,15 +106,28 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
 
   useEffect(() => {
     if (!article || article.id !== articleId) return;
-    setSnapshot({ id: article.id, title: article.title });
+    setSnapshot({
+      id: article.id,
+      title: article.title,
+      isPubliclyAccessible: article.is_publicly_accessible,
+    });
   }, [article, articleId, setSnapshot]);
 
   useEffect(() => {
     if (snapshot == null || snapshot.id !== articleId) return;
     setArticle((a) => {
       if (!a || a.id !== snapshot.id) return a;
-      if (a.title === snapshot.title) return a;
-      return { ...a, title: snapshot.title };
+      if (
+        a.title === snapshot.title &&
+        a.is_publicly_accessible === snapshot.isPubliclyAccessible
+      ) {
+        return a;
+      }
+      return {
+        ...a,
+        title: snapshot.title,
+        is_publicly_accessible: snapshot.isPubliclyAccessible,
+      };
     });
   }, [articleId, snapshot]);
 

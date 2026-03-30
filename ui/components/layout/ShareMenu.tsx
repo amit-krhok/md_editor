@@ -34,18 +34,30 @@ function ShareIcon({ className }: { className?: string }) {
 type Props = {
   articleId: string;
   articleTitle: string;
+  initialIsPubliclyAccessible: boolean;
+  onPublicAccessibilityChange?: (isPublic: boolean) => void;
 };
 
-export function ShareMenu({ articleId, articleTitle }: Props) {
+export function ShareMenu({
+  articleId,
+  articleTitle,
+  initialIsPubliclyAccessible,
+  onPublicAccessibilityChange,
+}: Props) {
   const auth = useAuthStore();
   const token = auth.token;
   const { openArticleMarkdownRef } = useActiveArticle();
   const [open, setOpen] = useState(false);
-  const [publicEnabled, setPublicEnabled] = useState(false);
+  const [publicEnabled, setPublicEnabled] = useState(initialIsPubliclyAccessible);
   const [publicStateLoading, setPublicStateLoading] = useState(false);
   const [publicStateBusy, setPublicStateBusy] = useState(false);
   const [publicError, setPublicError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const onPublicAccessibilityChangeRef = useRef(onPublicAccessibilityChange);
+
+  useEffect(() => {
+    onPublicAccessibilityChangeRef.current = onPublicAccessibilityChange;
+  }, [onPublicAccessibilityChange]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,6 +81,10 @@ export function ShareMenu({ articleId, articleTitle }: Props) {
   }, [open]);
 
   useEffect(() => {
+    setPublicEnabled(initialIsPubliclyAccessible);
+  }, [initialIsPubliclyAccessible, articleId]);
+
+  useEffect(() => {
     if (!open || !token) return;
     let cancelled = false;
     setPublicStateLoading(true);
@@ -78,6 +94,9 @@ export function ShareMenu({ articleId, articleTitle }: Props) {
         const article = await getArticle(token, articleId);
         if (!cancelled) {
           setPublicEnabled(article.is_publicly_accessible);
+          onPublicAccessibilityChangeRef.current?.(
+            article.is_publicly_accessible,
+          );
         }
       } catch (e) {
         if (!cancelled) {
@@ -123,6 +142,7 @@ export function ShareMenu({ articleId, articleTitle }: Props) {
         is_publicly_accessible: nextPublicState,
       });
       setPublicEnabled(updated.is_publicly_accessible);
+      onPublicAccessibilityChangeRef.current?.(updated.is_publicly_accessible);
     } catch (e) {
       setPublicError(
         e instanceof ApiError
@@ -134,7 +154,12 @@ export function ShareMenu({ articleId, articleTitle }: Props) {
     } finally {
       setPublicStateBusy(false);
     }
-  }, [token, publicStateBusy, publicEnabled, articleId]);
+  }, [
+    token,
+    publicStateBusy,
+    publicEnabled,
+    articleId,
+  ]);
 
   const copyPublicUrl = useCallback(async () => {
     const url = `${window.location.origin}${ROUTES.readOnlyArticle(articleId)}`;
