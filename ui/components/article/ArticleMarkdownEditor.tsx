@@ -8,6 +8,7 @@ import {
   defaultValueCtx,
   editorViewOptionsCtx,
 } from "@milkdown/kit/core";
+import { remarkStringifyOptionsCtx } from "@milkdown/core";
 import { clipboard } from "@milkdown/kit/plugin/clipboard";
 import { history } from "@milkdown/kit/plugin/history";
 import { indent, indentConfig } from "@milkdown/kit/plugin/indent";
@@ -40,6 +41,12 @@ import {
   remarkDefListPlugin,
 } from "@/components/article/definition-list-support";
 import {
+  highlightInputRule,
+  highlightSchema,
+  remarkHighlightPlugin,
+} from "@/components/article/highlight-support";
+import { buildArticleMarkdownHandlers } from "@/components/article/markdown-handlers";
+import {
   taskListListItemExtension,
   taskListTogglePlugin,
 } from "@/components/article/task-list-support";
@@ -67,6 +74,10 @@ function createArticleEditor(
     .config((ctx) => {
       ctx.set(rootCtx, root);
       ctx.set(defaultValueCtx, defaultValue);
+      ctx.update(remarkStringifyOptionsCtx, (prev) => ({
+        ...prev,
+        handlers: buildArticleMarkdownHandlers(prev?.handlers ?? undefined),
+      }));
       ctx.set(editorViewOptionsCtx, {
         editable: () => !readOnly,
         ...buildLinkEditorProps(),
@@ -78,8 +89,10 @@ function createArticleEditor(
       }));
     })
     .use(remarkEmojiPlugin)
+    .use(remarkHighlightPlugin)
     .use(remarkDefListPlugin)
     .use(commonmark)
+    .use(highlightSchema)
     .use(definitionListSchemaPlugins[0])
     .use(definitionListSchemaPlugins[1])
     .use(definitionListSchemaPlugins[2])
@@ -87,6 +100,7 @@ function createArticleEditor(
     .use(definitionListSchemaPlugins[4])
     .use(definitionListSchemaPlugins[5])
     .use(emojiShortcodeInputRule)
+    .use(highlightInputRule)
     .config((ctx) => configureCodeBlock(ctx))
     .use(codeBlockComponent)
     .use(listener)

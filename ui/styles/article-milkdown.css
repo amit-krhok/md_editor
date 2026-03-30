@@ -150,6 +150,14 @@
   color: var(--muted);
 }
 
+.article-md-editor .ProseMirror mark,
+.article-md-editor .ProseMirror mark.md-highlight {
+  background: color-mix(in srgb, #facc15 38%, transparent);
+  color: inherit;
+  border-radius: 0.2rem;
+  padding: 0 0.12em;
+}
+
 .article-md-editor .ProseMirror img {
   max-width: 100%;
   max-height: min(65vh, 28rem);
