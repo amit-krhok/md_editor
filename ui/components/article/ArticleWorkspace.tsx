@@ -202,7 +202,7 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col py-4">
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
       <ArticleMarkdownEditor
         articleId={articleId}
         initialMarkdown={content}
