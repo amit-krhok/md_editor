@@ -61,6 +61,16 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Hide scrollbars while preserving scroll behavior for scrollable panes. */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
 /*
  * Buttons: use `button.app-btn…` so we beat Tailwind preflight (`button { background: none }`, etc.).
  * !important on fills so utilities like `w-full` never strip the chrome.

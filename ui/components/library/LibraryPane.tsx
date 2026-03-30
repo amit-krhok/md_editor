@@ -402,7 +402,7 @@ export const LibraryPane = observer(function LibraryPane() {
               {libraryMoveError}
             </p>
           ) : null}
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-0.5">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-1 py-0.5 scrollbar-hidden">
             {loading ? (
               <div className="flex justify-center py-6">
                 <Spinner className="size-5" />

@@ -15,7 +15,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
             <AppHeader />
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
               <LibraryPane />
-              <main className="mx-auto min-h-0 w-full min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-[length:var(--spacing-page)] py-[length:var(--spacing-section)]">
+              <main className="mx-auto min-h-0 w-full min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-[length:var(--spacing-page)] py-[length:var(--spacing-section)] scrollbar-hidden">
                 {children}
               </main>
             </div>
