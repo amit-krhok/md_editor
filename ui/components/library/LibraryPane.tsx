@@ -529,6 +529,15 @@ export const LibraryPane = observer(function LibraryPane() {
               </ul>
             )}
           </div>
+          <div className="shrink-0 border-t border-border px-2 py-1.5">
+            <button
+              type="button"
+              className="w-full rounded px-1 py-1 text-left text-xs text-muted transition-colors hover:bg-muted/10 hover:text-foreground"
+              onClick={() => window.dispatchEvent(new Event("open-article-search"))}
+            >
+              Search (Cmd+K)
+            </button>
+          </div>
         </aside>
       ) : null}
 

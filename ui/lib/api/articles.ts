@@ -17,6 +17,14 @@ export async function listArticlesInFolder(
   return apiJson<ArticlePublic[]>(`/articles/?${q.toString()}`, { token });
 }
 
+export async function searchOwnedArticles(
+  token: string,
+  query: string,
+): Promise<ArticlePublic[]> {
+  const q = new URLSearchParams({ query });
+  return apiJson<ArticlePublic[]>(`/articles/search?${q.toString()}`, { token });
+}
+
 export async function createArticle(
   token: string,
   payload: { title: string; folderId?: string | null },
