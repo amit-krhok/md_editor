@@ -15,6 +15,7 @@
     "@codemirror/view": "^6.40.0",
     "@milkdown/kit": "^7.19.2",
     "@milkdown/react": "^7.19.2",
+    "@netlify/plugin-nextjs": "^5.15.9",
     "@uiw/codemirror-theme-vscode": "^4.25.9",
     "codemirror": "^6.0.2",
     "marked": "^17.0.5",
