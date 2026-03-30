@@ -19,6 +19,7 @@ import type {
 } from "@milkdown/kit/prose/view";
 import type { Ctx } from "@milkdown/kit/ctx";
 import { $inputRule, $remark } from "@milkdown/kit/utils";
+import { isInTable } from "@milkdown/prose/tables";
 
 import { emojiPickModeHandleKeyDown } from "@/components/article/emoji-autocomplete/emoji-autocomplete-plugin";
 import { slashPickModeHandleKeyDown } from "@/components/article/slash-commands/slash-plugin";
@@ -248,6 +249,16 @@ export function buildArticleEditorKeymapProps(
 ): Pick<DirectEditorProps, "handleKeyDown"> {
   return {
     handleKeyDown(view, event) {
+      if (event.key === "Enter" && event.shiftKey && isInTable(view.state)) {
+        const hardbreak = view.state.schema.nodes.hardbreak;
+        if (!hardbreak) return false;
+        event.preventDefault();
+        const tr = view.state.tr
+          .replaceSelectionWith(hardbreak.create())
+          .scrollIntoView();
+        view.dispatch(tr);
+        return true;
+      }
       return (
         slashPickModeHandleKeyDown(view, event, ctx) ||
         emojiPickModeHandleKeyDown(view, event)
