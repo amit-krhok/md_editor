@@ -9,6 +9,7 @@ import { ApiError } from "@/lib/api/http";
 import { printArticleMarkdown } from "@/lib/print-article-markdown";
 import { useAuthStore } from "@/stores/store-context";
 import { Button } from "@/ui/Button";
+import { Modal } from "@/ui/Modal";
 
 /** macOS-style “square and arrow up” share glyph (stroke, SF-like). */
 function ShareIcon({ className }: { className?: string }) {
@@ -52,6 +53,7 @@ export function ShareMenu({
   const [publicStateLoading, setPublicStateLoading] = useState(false);
   const [publicStateBusy, setPublicStateBusy] = useState(false);
   const [publicError, setPublicError] = useState<string | null>(null);
+  const [confirmEnableOpen, setConfirmEnableOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const onPublicAccessibilityChangeRef = useRef(onPublicAccessibilityChange);
 
@@ -124,42 +126,42 @@ export function ShareMenu({
     printArticleMarkdown(articleTitle, openArticleMarkdownRef.current);
   }, [articleTitle, openArticleMarkdownRef]);
 
+  const setPublicReadable = useCallback(
+    async (nextPublicState: boolean) => {
+      if (!token || publicStateBusy) return;
+      setPublicStateBusy(true);
+      setPublicError(null);
+      try {
+        const updated = await updateArticle(token, articleId, {
+          is_publicly_accessible: nextPublicState,
+        });
+        setPublicEnabled(updated.is_publicly_accessible);
+        onPublicAccessibilityChangeRef.current?.(updated.is_publicly_accessible);
+      } catch (e) {
+        setPublicError(
+          e instanceof ApiError
+            ? e.message
+            : e instanceof Error
+              ? e.message
+              : "Could not update sharing settings",
+        );
+      } finally {
+        setPublicStateBusy(false);
+      }
+    },
+    [token, publicStateBusy, articleId],
+  );
+
   const togglePublicReadable = useCallback(async () => {
     if (!token || publicStateBusy) return;
     const nextPublicState = !publicEnabled;
-    if (
-      nextPublicState &&
-      !window.confirm(
-        "Make this article publicly readable? Anyone with the link can view it.",
-      )
-    ) {
+    if (nextPublicState) {
+      setOpen(false);
+      setConfirmEnableOpen(true);
       return;
     }
-    setPublicStateBusy(true);
-    setPublicError(null);
-    try {
-      const updated = await updateArticle(token, articleId, {
-        is_publicly_accessible: nextPublicState,
-      });
-      setPublicEnabled(updated.is_publicly_accessible);
-      onPublicAccessibilityChangeRef.current?.(updated.is_publicly_accessible);
-    } catch (e) {
-      setPublicError(
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? e.message
-            : "Could not update sharing settings",
-      );
-    } finally {
-      setPublicStateBusy(false);
-    }
-  }, [
-    token,
-    publicStateBusy,
-    publicEnabled,
-    articleId,
-  ]);
+    await setPublicReadable(false);
+  }, [token, publicStateBusy, publicEnabled, setPublicReadable]);
 
   const copyPublicUrl = useCallback(async () => {
     const url = `${window.location.origin}${ROUTES.readOnlyArticle(articleId)}`;
@@ -228,6 +230,45 @@ export function ShareMenu({
           ) : null}
         </div>
       ) : null}
+      <Modal
+        open={confirmEnableOpen}
+        onClose={() => {
+          if (!publicStateBusy) {
+            setConfirmEnableOpen(false);
+          }
+        }}
+        title="Make file public?"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={publicStateBusy}
+              onClick={() => setConfirmEnableOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              disabled={publicStateBusy}
+              onClick={() => {
+                void (async () => {
+                  await setPublicReadable(true);
+                  setConfirmEnableOpen(false);
+                })();
+              }}
+            >
+              Make public
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm leading-relaxed text-muted">
+          Anyone with this link can view{" "}
+          <span className="font-medium text-foreground">{articleTitle}</span>.
+        </p>
+      </Modal>
     </div>
   );
 }
