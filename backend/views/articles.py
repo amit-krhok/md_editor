@@ -47,12 +47,17 @@ async def list_articles(
             description="If true, only articles with no folder (ignores folder_id).",
         ),
     ] = False,
+    search: Annotated[
+        str | None,
+        Query(description="Case-insensitive search in owned article title/content."),
+    ] = None,
 ) -> list[ArticlePublic]:
     return await ArticleService.list_articles(
         db,
         current_user,
         folder_id=folder_id,
         without_folder=without_folder,
+        search=search,
     )
 
 

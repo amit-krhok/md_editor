@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.articles.exceptions import ArticleNotFoundError
@@ -98,12 +98,21 @@ class ArticleService:
         *,
         folder_id: uuid.UUID | None = None,
         without_folder: bool = False,
+        search: str | None = None,
     ) -> list[Article]:
         q = select(Article).where(Article.user_id == user.id)
         if without_folder:
             q = q.where(Article.folder_id.is_(None))
         elif folder_id is not None:
             q = q.where(Article.folder_id == folder_id)
+        if search is not None and search.strip():
+            term = f"%{search.strip()}%"
+            q = q.where(
+                or_(
+                    Article.title.ilike(term),
+                    Article.content.ilike(term),
+                )
+            )
         q = q.order_by(Article.modified_at.desc())
         result = await db.execute(q)
         return list(result.scalars().all())
