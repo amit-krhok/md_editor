@@ -47,18 +47,25 @@ async def list_articles(
             description="If true, only articles with no folder (ignores folder_id).",
         ),
     ] = False,
-    search: Annotated[
-        str | None,
-        Query(description="Case-insensitive search in owned article title/content."),
-    ] = None,
 ) -> list[ArticlePublic]:
     return await ArticleService.list_articles(
         db,
         current_user,
         folder_id=folder_id,
         without_folder=without_folder,
-        search=search,
     )
+
+
+@router.get("/search", response_model=list[ArticlePublic])
+async def search_articles(
+    query: Annotated[
+        str,
+        Query(min_length=1, description="Case-insensitive search in owned articles."),
+    ],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> list[ArticlePublic]:
+    return await ArticleService.search_owned_articles(db, current_user, query)
 
 
 @router.post("/{article_id}/move", response_model=ArticlePublic)
