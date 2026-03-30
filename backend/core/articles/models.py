@@ -2,7 +2,16 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, String, Text, Uuid, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum as SAEnum,
+    ForeignKey,
+    String,
+    Text,
+    Uuid,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -32,6 +41,9 @@ class Article(Base):
     )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    is_publicly_accessible: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     role: Mapped[ArticleRole] = mapped_column(
         SAEnum(ArticleRole, native_enum=False, length=32),
         nullable=False,

@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useActiveArticle } from "@/components/providers/ActiveArticleContext";
+import { ROUTES } from "@/constants/routes";
+import { getArticle, updateArticle } from "@/lib/api/articles";
+import { ApiError } from "@/lib/api/http";
 import { printArticleMarkdown } from "@/lib/print-article-markdown";
+import { useAuthStore } from "@/stores/store-context";
 import { Button } from "@/ui/Button";
 
 /** macOS-style “square and arrow up” share glyph (stroke, SF-like). */
@@ -28,12 +32,19 @@ function ShareIcon({ className }: { className?: string }) {
 }
 
 type Props = {
+  articleId: string;
   articleTitle: string;
 };
 
-export function ShareMenu({ articleTitle }: Props) {
+export function ShareMenu({ articleId, articleTitle }: Props) {
+  const auth = useAuthStore();
+  const token = auth.token;
   const { openArticleMarkdownRef } = useActiveArticle();
   const [open, setOpen] = useState(false);
+  const [publicEnabled, setPublicEnabled] = useState(false);
+  const [publicStateLoading, setPublicStateLoading] = useState(false);
+  const [publicStateBusy, setPublicStateBusy] = useState(false);
+  const [publicError, setPublicError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,10 +68,83 @@ export function ShareMenu({ articleTitle }: Props) {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open || !token) return;
+    let cancelled = false;
+    setPublicStateLoading(true);
+    setPublicError(null);
+    void (async () => {
+      try {
+        const article = await getArticle(token, articleId);
+        if (!cancelled) {
+          setPublicEnabled(article.is_publicly_accessible);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setPublicError(
+            e instanceof ApiError
+              ? e.message
+              : e instanceof Error
+                ? e.message
+                : "Could not load sharing state",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setPublicStateLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, token, articleId]);
+
   const exportPdf = useCallback(() => {
     setOpen(false);
     printArticleMarkdown(articleTitle, openArticleMarkdownRef.current);
   }, [articleTitle, openArticleMarkdownRef]);
+
+  const togglePublicReadable = useCallback(async () => {
+    if (!token || publicStateBusy) return;
+    const nextPublicState = !publicEnabled;
+    if (
+      nextPublicState &&
+      !window.confirm(
+        "Make this article publicly readable? Anyone with the link can view it.",
+      )
+    ) {
+      return;
+    }
+    setPublicStateBusy(true);
+    setPublicError(null);
+    try {
+      const updated = await updateArticle(token, articleId, {
+        is_publicly_accessible: nextPublicState,
+      });
+      setPublicEnabled(updated.is_publicly_accessible);
+    } catch (e) {
+      setPublicError(
+        e instanceof ApiError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : "Could not update sharing settings",
+      );
+    } finally {
+      setPublicStateBusy(false);
+    }
+  }, [token, publicStateBusy, publicEnabled, articleId]);
+
+  const copyPublicUrl = useCallback(async () => {
+    const url = `${window.location.origin}${ROUTES.readOnlyArticle(articleId)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setOpen(false);
+    } catch {
+      setPublicError("Could not copy URL");
+    }
+  }, [articleId]);
 
   return (
     <div className="relative" ref={containerRef}>
@@ -89,6 +173,34 @@ export function ShareMenu({ articleTitle }: Props) {
           >
             Export to PDF
           </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted/15 disabled:opacity-60"
+            disabled={publicStateLoading || publicStateBusy}
+            onClick={() => void togglePublicReadable()}
+          >
+            {publicStateBusy
+              ? "Updating..."
+              : publicEnabled
+                ? "Disable public read access"
+                : "Make publicly readable"}
+          </button>
+          {publicEnabled ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted/15"
+              onClick={() => void copyPublicUrl()}
+            >
+              Copy public URL
+            </button>
+          ) : null}
+          {publicError ? (
+            <p className="px-3 py-1 text-xs text-red-600 dark:text-red-400">
+              {publicError}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

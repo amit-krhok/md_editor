@@ -222,7 +222,11 @@ export function AppHeader() {
             <ArticleSaveIndicator status={contentSaveStatus} />
           ) : null}
           {showTitleChip ? (
-            <ShareMenu key={snapshot.id} articleTitle={snapshot.title} />
+            <ShareMenu
+              key={snapshot.id}
+              articleId={snapshot.id}
+              articleTitle={snapshot.title}
+            />
           ) : null}
           <SettingsMenu showSignOut />
         </div>

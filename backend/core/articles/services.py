@@ -35,6 +35,19 @@ class ArticleService:
         return article
 
     @staticmethod
+    async def get_public_or_raise(db: AsyncSession, article_id: uuid.UUID) -> Article:
+        result = await db.execute(
+            select(Article).where(
+                Article.id == article_id,
+                Article.is_publicly_accessible.is_(True),
+            )
+        )
+        article = result.scalars().first()
+        if article is None:
+            raise ArticleNotFoundError()
+        return article
+
+    @staticmethod
     async def _resolve_folder(
         db: AsyncSession, user: User, folder_id: uuid.UUID | None
     ) -> uuid.UUID | None:
@@ -109,6 +122,8 @@ class ArticleService:
             article.folder_id = await ArticleService._resolve_folder(
                 db, user, data["folder_id"]
             )
+        if "is_publicly_accessible" in data:
+            article.is_publicly_accessible = data["is_publicly_accessible"]
         await db.commit()
         await db.refresh(article)
         return article

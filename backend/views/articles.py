@@ -68,6 +68,14 @@ async def move_article(
     )
 
 
+@router.get("/public/{article_id}", response_model=ArticlePublic)
+async def get_public_article(
+    article_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ArticlePublic:
+    return await ArticleService.get_public_or_raise(db, article_id)
+
+
 @router.get("/{article_id}", response_model=ArticlePublic)
 async def get_article(
     article_id: uuid.UUID,

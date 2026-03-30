@@ -43,7 +43,12 @@ export async function getArticle(
 export async function updateArticle(
   token: string,
   articleId: string,
-  body: { title?: string; content?: string; folder_id?: string | null },
+  body: {
+    title?: string;
+    content?: string;
+    folder_id?: string | null;
+    is_publicly_accessible?: boolean;
+  },
 ): Promise<ArticlePublic> {
   return apiJson<ArticlePublic>(`/articles/${articleId}`, {
     method: "PATCH",
@@ -51,6 +56,10 @@ export async function updateArticle(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+}
+
+export async function getPublicArticle(articleId: string): Promise<ArticlePublic> {
+  return apiJson<ArticlePublic>(`/articles/public/${articleId}`);
 }
 
 /** Move article into a folder (`POST /articles/{id}/move`). */

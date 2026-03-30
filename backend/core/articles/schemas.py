@@ -23,6 +23,7 @@ class ArticleUpdate(BaseModel):
         default=None,
         description="Set to null to move the article out of any folder.",
     )
+    is_publicly_accessible: bool | None = None
 
 
 class ArticlePublic(BaseModel):
@@ -33,6 +34,7 @@ class ArticlePublic(BaseModel):
     folder_id: uuid.UUID | None
     title: str
     content: str
+    is_publicly_accessible: bool
     role: ArticleRole
     created_at: datetime
     modified_at: datetime

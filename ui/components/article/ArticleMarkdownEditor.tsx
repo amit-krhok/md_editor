@@ -57,6 +57,7 @@ function createArticleEditor(
   root: HTMLElement,
   defaultValue: string,
   onMarkdownChange: (markdown: string) => void,
+  readOnly: boolean,
 ) {
   return Editor.make()
     .config((ctx) => {
@@ -67,7 +68,7 @@ function createArticleEditor(
       ctx.set(rootCtx, root);
       ctx.set(defaultValueCtx, defaultValue);
       ctx.set(editorViewOptionsCtx, {
-        editable: () => true,
+        editable: () => !readOnly,
         ...buildLinkEditorProps(),
         ...buildArticleEditorKeymapProps(ctx),
       });
@@ -111,12 +112,14 @@ type Props = {
   articleId: string;
   initialMarkdown: string;
   onMarkdownChange: (markdown: string) => void;
+  readOnly?: boolean;
 };
 
 function EditorSurface({
   articleId,
   initialMarkdown,
   onMarkdownChange,
+  readOnly = false,
 }: Props) {
   const [bootstrapMarkdown] = useState(() => initialMarkdown);
   const onChangeRef = useRef(onMarkdownChange);
@@ -135,15 +138,19 @@ function EditorSurface({
 
   useEditor(
     (root: HTMLElement) =>
-      createArticleEditor(root, bootstrapMarkdown, (md) =>
-        onChangeRef.current(md),
+      createArticleEditor(
+        root,
+        bootstrapMarkdown,
+        (md) => onChangeRef.current(md),
+        readOnly,
       ),
-    [bootstrapMarkdown],
+    [bootstrapMarkdown, readOnly],
   );
 
   const [loading, getEditor] = useInstance();
 
   useEffect(() => {
+    if (readOnly) return;
     if (loading) return;
     if (lastFocusedIdRef.current === articleId) return;
     lastFocusedIdRef.current = articleId;
@@ -165,14 +172,19 @@ function EditorSurface({
       });
     });
     return () => cancelAnimationFrame(id);
-  }, [articleId, loading, getEditor]);
+  }, [articleId, loading, getEditor, readOnly]);
 
   return (
     <div ref={surfaceRef} className="article-md-editor w-full">
       <label className="sr-only" htmlFor={`article-editor-${articleId}`}>
         Article content
       </label>
-      <div id={`article-editor-${articleId}`} role="textbox" aria-multiline>
+      <div
+        id={`article-editor-${articleId}`}
+        role="textbox"
+        aria-multiline
+        aria-readonly={readOnly}
+      >
         <Milkdown />
       </div>
     </div>
