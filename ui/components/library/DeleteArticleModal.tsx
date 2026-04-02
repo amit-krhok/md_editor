@@ -40,8 +40,9 @@ export function DeleteArticleModal({
             Cancel
           </Button>
           <Button
-            type="button"
+        type="button"
             variant="danger"
+        autoFocus
             disabled={busy}
             onClick={onConfirm}
           >

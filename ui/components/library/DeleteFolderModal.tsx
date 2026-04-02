@@ -113,6 +113,14 @@ export function DeleteFolderModal({
         placeholder={CONFIRM_PHRASE}
         aria-label="Type DELETE to confirm"
         onChange={(e) => setPhrase(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (canDelete) {
+              void handleDelete();
+            }
+          }
+        }}
       />
       {error ? (
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
