@@ -18,6 +18,11 @@ import {
 import { ARTICLE_DRAG_MIME } from "@/lib/dnd";
 import { createFolder, listFolders, updateFolder } from "@/lib/api/folders";
 import { ApiError } from "@/lib/api/http";
+import {
+  OPEN_ARTICLE_SEARCH_EVENT,
+  OPEN_CREATE_FILE_EVENT,
+  type ShortcutCreateFileDetail,
+} from "@/lib/shortcuts/shortcutRegistry";
 import { useAuthStore } from "@/stores/store-context";
 import type { ArticlePublic } from "@/types/article.types";
 import type { FolderPublic } from "@/types/folder.types";
@@ -31,7 +36,10 @@ import { DeleteFolderModal } from "./DeleteFolderModal";
 import { FolderRow } from "./FolderRow";
 import { LibraryPaneHeader } from "./LibraryPaneHeader";
 
-type CreateFileContext = { folderId: string | null };
+type CreateFileContext = {
+  folderId: string | null;
+  initialTitle?: string;
+};
 
 export const LibraryPane = observer(function LibraryPane() {
   const auth = useAuthStore();
@@ -39,7 +47,11 @@ export const LibraryPane = observer(function LibraryPane() {
   const router = useRouter();
   const pathname = usePathname();
   const { syncLibraryTitles } = useActiveArticle();
-  const { libraryCollapsed: collapsed, collapseLibrary } = useLibraryPaneUi();
+  const {
+    libraryCollapsed: collapsed,
+    collapseLibrary,
+    expandLibrary,
+  } = useLibraryPaneUi();
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [createFileContext, setCreateFileContext] =
     useState<CreateFileContext | null>(null);
@@ -328,6 +340,40 @@ export const LibraryPane = observer(function LibraryPane() {
     return () => window.clearTimeout(t);
   }, [libraryMoveError]);
 
+  useEffect(() => {
+    const onOpenCreateFile = (e: Event) => {
+      const detail = (e as CustomEvent<ShortcutCreateFileDetail | undefined>)
+        .detail;
+      const folderId = detail?.folderId ?? null;
+      const initialTitle = detail?.initialTitle ?? "new file";
+
+      // Ensure the inline create UI is visible.
+      expandLibrary();
+
+      setCreateError(null);
+      setCreateFileError(null);
+      setCreatingFolder(false);
+
+      setCreateFileContext({ folderId, initialTitle });
+
+      if (folderId) {
+        setExpandedFolderIds((prev) => new Set(prev).add(folderId));
+        void ensureFolderArticlesLoaded(folderId);
+      }
+    };
+
+    window.addEventListener(
+      OPEN_CREATE_FILE_EVENT,
+      onOpenCreateFile as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        OPEN_CREATE_FILE_EVENT,
+        onOpenCreateFile as EventListener,
+      );
+    };
+  }, [expandLibrary, ensureFolderArticlesLoaded]);
+
   const handleConfirmDeleteArticle = useCallback(async () => {
     if (!token || !deleteArticleTarget) return;
     const id = deleteArticleTarget.id;
@@ -388,6 +434,7 @@ export const LibraryPane = observer(function LibraryPane() {
           {createFileContext?.folderId === null ? (
             <CreateFileInline
               key="create-file-root"
+              initialTitle={createFileContext.initialTitle}
               onSubmit={handleCreateFile}
               onCancel={() => {
                 setCreateFileContext(null);
@@ -497,6 +544,7 @@ export const LibraryPane = observer(function LibraryPane() {
                           <li className="list-none">
                             <CreateFileInline
                               key={`create-file-${folder.id}`}
+                              initialTitle={createFileContext.initialTitle}
                               onSubmit={handleCreateFile}
                               onCancel={() => {
                                 setCreateFileContext(null);
@@ -533,7 +581,7 @@ export const LibraryPane = observer(function LibraryPane() {
             <button
               type="button"
               className="w-full rounded px-1 py-1 text-left text-xs text-muted transition-colors hover:bg-muted/10 hover:text-foreground"
-              onClick={() => window.dispatchEvent(new Event("open-article-search"))}
+              onClick={() => window.dispatchEvent(new Event(OPEN_ARTICLE_SEARCH_EVENT))}
             >
               Search (Cmd+K)
             </button>

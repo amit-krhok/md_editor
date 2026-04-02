@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   LibraryNameFieldError,
@@ -10,6 +10,8 @@ import {
 type Props = {
   onSubmit: (title: string) => void | Promise<void>;
   onCancel: () => void;
+  /** Prefill the input; useful for keyboard shortcuts. */
+  initialTitle?: string;
   disabled?: boolean;
   error: string | null;
 };
@@ -17,15 +19,30 @@ type Props = {
 export function CreateFileInline({
   onSubmit,
   onCancel,
+  initialTitle = "",
   disabled,
   error,
 }: Props) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialTitle);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setValue(initialTitle);
+  }, [initialTitle]);
+
+  useEffect(() => {
+    if (disabled) return;
+    const id = requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [disabled, initialTitle]);
 
   return (
     <div className="border-b border-border px-2 py-0.5">
       <LibraryNameInput
-        autoFocus
+        ref={inputRef}
         placeholder="File name"
         value={value}
         disabled={disabled}

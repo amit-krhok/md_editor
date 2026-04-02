@@ -9,11 +9,10 @@ import { useArrowListNavigation } from "@/lib/useArrowListNavigation";
 import { ApiError } from "@/lib/api/http";
 import { useAuthStore } from "@/stores/store-context";
 import type { ArticlePublic } from "@/types/article.types";
+import { OPEN_ARTICLE_SEARCH_EVENT } from "@/lib/shortcuts/shortcutRegistry";
 import { Input } from "@/ui/Input";
 import { Modal } from "@/ui/Modal";
 import { Spinner } from "@/ui/Spinner";
-
-const OPEN_ARTICLE_SEARCH_EVENT = "open-article-search";
 
 export function ArticleSearchPalette() {
   const auth = useAuthStore();
@@ -63,19 +62,9 @@ export function ArticleSearchPalette() {
   });
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const isK = e.key.toLowerCase() === "k";
-      if (!(e.metaKey || e.ctrlKey) || !isK) return;
-      e.preventDefault();
-      openSearch();
-    };
     const onOpen = () => openSearch();
-    window.addEventListener("keydown", onKeyDown);
     window.addEventListener(OPEN_ARTICLE_SEARCH_EVENT, onOpen);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener(OPEN_ARTICLE_SEARCH_EVENT, onOpen);
-    };
+    return () => window.removeEventListener(OPEN_ARTICLE_SEARCH_EVENT, onOpen);
   }, [openSearch]);
 
   useEffect(() => {
