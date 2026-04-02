@@ -4,36 +4,54 @@ A **Docker-first**, **self-hosted**, **actually yours** markdown workspace. Not 
 
 ---
 
-## ✨ Product features (the part humans care about)
+## Why this exists
 
-- ⌨️ **Slash commands** — Type `/` for tables (with row/column counts), images, links, and **in-table** shortcuts (rows/columns add/remove) when your cursor’s in a cell—no floating toolbar blocking the text.
-- 📝 **Real markdown, edited for real** — **[Milkdown](https://milkdown.dev/)** + **GFM**: headings, lists, block quotes, rules, **strikethrough**, **task lists** (`- [ ]` / `- [x]`), **tables** with normal keyboard nav.
-- 📖 **Definition lists** — `term` / `: definition` style blocks for the glossary-inclined.
-- 😀 **Emoji** — `:shortcode:` input rules plus a picker-style autocomplete when you’re feeling expressive.
-- 💻 **Code blocks** — Language hinting via **CodeMirror** and a copy button so you’re not selecting text like it’s 2003.
-- 📁 **Library model** — Folders and articles, move pieces around, JWT auth, “this is mine” data in **Postgres**.
-- 🖨️ **Print friendly** — Pipe an article through the browser print dialog (PDF vibes) when you need something attachable.
+- You wanted a private markdown workspace.
+- You did not want another cloud dashboard with 19 pricing tiers.
+- You wanted folders, files, auth, and an editor that behaves like markdown, not a haunted PowerPoint.
+
+Mission accomplished (mostly).
 
 ---
 
-## 🧰 Tech stack (the greatest hits)
+## ✨ Product features (human edition)
 
-- ⚡ **FastAPI** — Python goes brrr, OpenAPI docs for people who read docs
-- ⚛️ **React + Next.js** — Yes, another Next app. It’s fine. You’ll survive.
-- 🐘 **PostgreSQL** — Because your notes deserve a real database, not `localStorage` roulette
+- ⌨️ **Slash commands** — Type `/` for tables (with row/column counts), images, links, and in-table shortcuts (add/remove rows/columns) when your cursor is in a table cell.
+- 📝 **Actual markdown editing** — **[Milkdown](https://milkdown.dev/)** + **GFM** (headings, lists, block quotes, strikethrough, task lists, tables, etc.).
+- 📖 **Definition lists** — `term` then `: definition` if you enjoy civilized structure.
+- 😀 **Emoji support** — `:shortcode:` rules and picker-like autocomplete for emotional range.
+- 💻 **Code blocks** — CodeMirror language hinting + copy button so you can pretend this was always clean.
+- 📁 **Library model** — Folders + files with JWT auth and PostgreSQL persistence.
+- 🖨️ **Print to PDF flow** — Browser print path for "please attach this in a ticket" moments.
 
 ---
 
-## 🐳 Docker Compose — who talks to whom
+## 🧰 Tech stack
 
-- 🕸️ **Networks** — **`md_editor_backend`** (`internal: true`): `db`, `api`, `ui` huddle together like introverts at a party. **`md_editor_frontend`**: **`nginx` only** (plus a polite tether to the backend net for proxying). Translation: **edge** vs **“please don’t expose Postgres to the internet”** plane.
-- 🚪 **nginx** — `http://localhost` (and `:443` when you stop procrastinating on TLS) sends `/` → Next (`ui:3045`) and `/api/` → FastAPI (`api:8000`).
-- 🖥️ **ui** — [http://localhost:3045](http://localhost:3045) if you _must_ skip nginx. (You don’t _have_ to. But you _can_.)
-- 🔌 **api** — `http://localhost:8005` for curl warriors and “just one quick request.”
+- ⚡ **FastAPI**
+- ⚛️ **React + Next.js**
+- 🐘 **PostgreSQL**
+- 🐳 **Docker Compose**
+- 🖥️ **Electron** (optional desktop shell)
 
-🔒 **Hardening (recommended):** rip out the **`8005`** / **`3045`** host mappings so strangers stop at **nginx** and don’t tour your stack.
+---
 
-🔐 **HTTPS (when you’re ready):** copy `nginx/conf.d/zz-https.local.conf.example` → `nginx/conf.d/zz-https.local.conf` (gitignored), drop certs in `./certs/`, `docker compose up -d --build`. Edit `server_name` and paths **only** in that local file—because committing your infra dreams is a different hobby.
+## 🐳 Docker Compose quick map
+
+- 🚪 **nginx** serves `http://localhost` and proxies:
+  - `/` -> `ui:3045`
+  - `/api/` -> `api:8000`
+- 🖥️ **ui** direct: [http://localhost:3045](http://localhost:3045) (if you insist)
+- 🔌 **api** direct: `http://localhost:8005` (for curl warriors)
+- 🕸️ Services are split across backend/frontend networks to reduce accidental internet chaos.
+
+### If `docker compose` is not working
+
+Beautiful. You're now part of the team.
+
+1. Run `docker compose logs -f` and read the error (yes, all of it).
+2. Fix what is broken.
+3. If your fix is useful, open a PR so everyone suffers less.
 
 ---
 
@@ -45,36 +63,36 @@ The **`electron/`** shell can run the UI against Docker Compose on your machine 
 
 ---
 
+## 🤝 Contributions (feature requests disguised as effort)
+
+- Didn't like a feature? **Raise a PR.**
+- Found a bug? **Raise a PR.**
+- Think a section is dumb? **Raise a PR with better dumbness.**
+
+Issue reports are welcome too, but code that fixes things gets merged faster than feelings.
+
+---
+
 ## 🎓 Production checklist (read this or enjoy regret)
 
-1. 🔑 **Secrets** — Real `.env` on the server. **`JWT_SECRET_KEY`**: long, random, not `changeme`. **`POSTGRES_PASSWORD`**: same energy. Never commit. `.env.example` is a _hint_, not a dare.
-
-2. 🌍 **CORS** — Set **`CORS_ORIGINS`** to the _exact_ origin the browser uses. Typos here = hours of “it works on my machine” (it doesn’t).
-
-3. 🔒 **HTTPS** — Certs (Let’s Encrypt, your CA of choice, etc.). **`fullchain.pem`** + **`privatekey.pem`** in **`certs/`** (or **`MD_EDITOR_CERT_DIR`**). Copy the nginx HTTPS example → local conf, set **`server_name`**. OCSP stapling: only if you know what that means; comments in the example are your friend.
-
-4. 🏗️ **Rebuild UI with the real API URL** — `NEXT_PUBLIC_*` is **baked at build time**, not runtime. Surprise! Rebuild after you fix the domain, e.g.  
-   `NEXT_PUBLIC_API_URL=https://editor.example.com/api docker compose build ui --no-cache`  
-   then `docker compose up -d`.
-
-5. 🎯 **Shrink the surface** — Remove **`8005:8000`** and **`3045:3045`** from **`docker-compose.yml`** so the world only knocks on **80/443**. Revolutionary.
-
-6. 👮 **Access control** — **`SUPERUSER_EMAILS`** (or equivalent): who gets to exist when registration is a thing. Review login/register before you paste the URL in a group chat.
-
-7. 💾 **Data & logs** — Volume **`postgres_data_md_editor`** = your life story. Back it up. **`./logs`** in the API container = breadcrumbs when something whines.
-
-8. 🧱 **Firewall** — **80/443** (and **22** if you SSH like a civilized person). Not: Postgres on the public timeline.
-
-9. 🔄 **Updates** — Rebuild images when code moves. Run **Alembic** migrations when the backend says so. Ignoring migrations is a personality, not a strategy.
+1. 🔑 **Secrets** — Real `.env` on the server. `JWT_SECRET_KEY` and `POSTGRES_PASSWORD` must be strong and not comedic.
+2. 🌍 **CORS** — Set `CORS_ORIGINS` to the exact browser origin.
+3. 🔒 **HTTPS** — Configure certs and nginx HTTPS local override.
+4. 🏗️ **Rebuild UI with real API URL** — `NEXT_PUBLIC_*` is build-time baked.
+5. 🎯 **Reduce attack surface** — Remove direct `8005` and `3045` mappings for public deployments.
+6. 👮 **Access control** — Configure superuser/admin gatekeeping.
+7. 💾 **Backups** — Protect `postgres_data_md_editor` like it contains your career (it might).
+8. 🧱 **Firewall** — Open 80/443 (+22 if needed), not the whole buffet.
+9. 🔄 **Updates** — Rebuild, migrate, and stop pretending Alembic is optional.
 
 ---
 
 ## 📚 More reading
 
-- 🐍 **[backend/README.md](backend/README.md)** — API features, routes, and JWT drama
-- 🖼️ **[ui/README.md](ui/README.md)** — Next dev server, Milkdown, and “why is my port 3045”
-- 🧩 **`electron/`** — Optional desktop shell (same baked-`.env` / packaging caveats as **Electron desktop** above)
+- 🐍 **[backend/README.md](backend/README.md)** — API routes, auth, and backend setup
+- 🖼️ **[ui/README.md](ui/README.md)** — UI dev setup and editor details
+- 🧩 **`electron/`** — Desktop shell caveats and packaging
 
 ---
 
-Built with open-source goodies (Milkdown, CodeMirror, and friends). Their licenses apply; blame them for the good parts.
+Built with open-source goodness (Milkdown, CodeMirror, and friends). Their licenses apply. We take credit only for the questionable jokes.
