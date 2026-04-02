@@ -43,6 +43,7 @@ export function CreateFileInline({
     <div className="border-b border-border px-2 py-0.5">
       <LibraryNameInput
         ref={inputRef}
+        autoFocus
         placeholder="File name"
         value={value}
         disabled={disabled}

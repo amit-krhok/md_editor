@@ -69,6 +69,7 @@ export function ArticleSearchPalette() {
 
   useEffect(() => {
     if (!open) return;
+    inputRef.current?.focus();
     const id = window.setTimeout(() => {
       inputRef.current?.focus();
       inputRef.current?.select();
@@ -125,6 +126,7 @@ export function ArticleSearchPalette() {
       <div className="space-y-2">
         <Input
           ref={inputRef}
+          autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onSearchKeyDown}
