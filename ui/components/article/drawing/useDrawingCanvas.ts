@@ -35,8 +35,13 @@ export function useDrawingCanvas({
 }: UseDrawingCanvasOptions) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [undoStack, setUndoStack] = useState<ImageData[]>([]);
-  const [redoStack, setRedoStack] = useState<ImageData[]>([]);
+  /** Refs keep undo/redo in sync; nested setState in updaters caused redo to need two taps. */
+  const undoStackRef = useRef<ImageData[]>([]);
+  const redoStackRef = useRef<ImageData[]>([]);
+  const [, setStackVersion] = useState(0);
+  const bumpStacks = useCallback(() => {
+    setStackVersion((v) => v + 1);
+  }, []);
   const drawingRef = useRef(false);
   const lastRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -72,9 +77,10 @@ export function useDrawingCanvas({
       img.src = prevSnapshot;
     }
 
-    setUndoStack([]);
-    setRedoStack([]);
-  }, []);
+    undoStackRef.current = [];
+    redoStackRef.current = [];
+    bumpStacks();
+  }, [bumpStacks]);
 
   const clearCanvas = useCallback(() => {
     layoutCanvas({ preserveDrawing: false });
@@ -105,43 +111,42 @@ export function useDrawingCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const snap = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    setUndoStack((prev) => {
-      const next = [...prev, snap];
-      if (next.length > maxUndo) next.shift();
-      return next;
-    });
-    setRedoStack([]);
-  }, [maxUndo]);
+    const next = [...undoStackRef.current, snap];
+    if (next.length > maxUndo) next.shift();
+    undoStackRef.current = next;
+    redoStackRef.current = [];
+    bumpStacks();
+  }, [bumpStacks, maxUndo]);
 
   const undo = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    setUndoStack((prev) => {
-      if (prev.length === 0) return prev;
-      const current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const last = prev[prev.length - 1];
-      setRedoStack((r) => [...r, current]);
-      ctx.putImageData(last, 0, 0);
-      return prev.slice(0, -1);
-    });
-  }, []);
+    const prev = undoStackRef.current;
+    if (prev.length === 0) return;
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const last = prev[prev.length - 1];
+    undoStackRef.current = prev.slice(0, -1);
+    redoStackRef.current = [...redoStackRef.current, current];
+    ctx.putImageData(last, 0, 0);
+    bumpStacks();
+  }, [bumpStacks]);
 
   const redo = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    setRedoStack((prev) => {
-      if (prev.length === 0) return prev;
-      const current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const last = prev[prev.length - 1];
-      setUndoStack((u) => [...u, current]);
-      ctx.putImageData(last, 0, 0);
-      return prev.slice(0, -1);
-    });
-  }, []);
+    const prev = redoStackRef.current;
+    if (prev.length === 0) return;
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const last = prev[prev.length - 1];
+    redoStackRef.current = prev.slice(0, -1);
+    undoStackRef.current = [...undoStackRef.current, current];
+    ctx.putImageData(last, 0, 0);
+    bumpStacks();
+  }, [bumpStacks]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -205,8 +210,8 @@ export function useDrawingCanvas({
     clearCanvas,
     undo,
     redo,
-    canUndo: undoStack.length > 0,
-    canRedo: redoStack.length > 0,
+    canUndo: undoStackRef.current.length > 0,
+    canRedo: redoStackRef.current.length > 0,
     onPointerDown,
     onPointerMove,
     onPointerUp: endStroke,
