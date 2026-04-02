@@ -131,7 +131,7 @@ export function ArticleSearchPalette() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onSearchKeyDown}
           placeholder="Type to search..."
-          className="h-9"
+          className="h-9 max-md:text-base"
         />
         <div className="max-h-80 overflow-y-auto rounded-md border border-border bg-surface scrollbar-hidden">
           {loading ? (

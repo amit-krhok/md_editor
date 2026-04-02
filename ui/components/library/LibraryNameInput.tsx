@@ -4,7 +4,7 @@ import { Input } from "@/ui/Input";
 
 /** Shared compact field for library create + rename (overrides default `Input` h-10). */
 const libraryNameInputClass =
-  "h-5! min-h-0! py-0! px-2! text-xs leading-none shadow-none";
+  "h-5! min-h-0! py-0! px-2! text-xs leading-none shadow-none max-md:h-9! max-md:py-1! max-md:text-base!";
 
 export const LibraryNameInput = forwardRef<
   HTMLInputElement,
