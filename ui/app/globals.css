@@ -241,3 +241,11 @@ button.library-toolbar-btn svg polyline {
   stroke: var(--foreground);
   vector-effect: non-scaling-stroke;
 }
+
+@media (max-width: 767px) {
+  button.library-toolbar-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+  }
+}

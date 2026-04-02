@@ -185,7 +185,7 @@ export function AppHeader() {
 
   return (
     <header className="relative z-40 border-b border-border bg-surface-elevated/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-8 max-h-8 min-h-8 items-center justify-between gap-3 overflow-visible px-[length:var(--spacing-page)] py-0">
+      <div className="mx-auto flex h-10 max-h-10 min-h-10 items-center justify-between gap-3 overflow-visible px-[length:var(--spacing-page)] py-0 md:h-8 md:max-h-8 md:min-h-8">
         <div className="flex min-h-0 min-w-0 max-h-8 flex-1 items-center gap-1.5">
           {libraryCollapsed ? (
             <button
@@ -232,6 +232,7 @@ export function AppHeader() {
               articleId={snapshot.id}
               articleTitle={snapshot.title}
               initialIsPubliclyAccessible={snapshot.isPubliclyAccessible}
+              triggerClassName="max-md:hidden"
               onPublicAccessibilityChange={(isPublic) =>
                 setSnapshot((prev) =>
                   prev && prev.id === snapshot.id
@@ -241,7 +242,7 @@ export function AppHeader() {
               }
             />
           ) : null}
-          <SettingsMenu showSignOut />
+          <SettingsMenu showSignOut triggerClassName="max-md:hidden" />
         </div>
       </div>
     </header>

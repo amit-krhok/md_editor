@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -21,6 +22,16 @@ export function LibraryPaneUiProvider({ children }: { children: ReactNode }) {
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const expandLibrary = useCallback(() => setLibraryCollapsed(false), []);
   const collapseLibrary = useCallback(() => setLibraryCollapsed(true), []);
+  const [mobileInitDone, setMobileInitDone] = useState(false);
+
+  useEffect(() => {
+    if (mobileInitDone) return;
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setLibraryCollapsed(true);
+    }
+    setMobileInitDone(true);
+  }, [mobileInitDone]);
 
   const value = useMemo(
     () => ({

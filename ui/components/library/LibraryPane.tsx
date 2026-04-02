@@ -222,6 +222,11 @@ export const LibraryPane = observer(function LibraryPane() {
         }
         setCreateFileContext(null);
         router.push(ROUTES.article(created.id));
+        if (typeof window !== "undefined") {
+          if (window.matchMedia("(max-width: 767px)").matches) {
+            collapseLibrary();
+          }
+        }
       } catch (e) {
         const message =
           e instanceof ApiError
@@ -393,12 +398,18 @@ export const LibraryPane = observer(function LibraryPane() {
   }, [token, deleteArticleTarget, pathname, router, removeArticleFromLocalState]);
 
   const asideClass =
-    "flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-t border-border bg-surface-elevated max-md:max-h-[min(24rem,50vh)] md:h-full md:w-[12.6rem] md:max-h-none md:border-r md:border-t-0";
+    "fixed inset-y-0 left-0 z-50 flex min-h-0 w-[min(88vw,22rem)] shrink-0 flex-col overflow-hidden border-r border-border bg-surface-elevated shadow-xl transition-transform md:static md:z-auto md:h-full md:w-[12.6rem] md:translate-x-0 md:shadow-none";
 
   return (
     <>
       {!collapsed ? (
-        <aside className={asideClass}>
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/35 md:hidden"
+            onClick={collapseLibrary}
+            aria-hidden
+          />
+          <aside className={asideClass}>
           <LibraryPaneHeader
             onCollapse={() => {
               collapseLibrary();
@@ -586,7 +597,8 @@ export const LibraryPane = observer(function LibraryPane() {
               Search (Cmd+K)
             </button>
           </div>
-        </aside>
+          </aside>
+        </>
       ) : null}
 
       <DeleteFolderModal

@@ -9,6 +9,7 @@ import {
   formatArticleRenameError,
   useActiveArticle,
 } from "@/components/providers/ActiveArticleContext";
+import { useLibraryPaneUi } from "@/components/providers/LibraryPaneUiContext";
 import type { ArticlePublic } from "@/types/article.types";
 import {
   LibraryNameFieldError,
@@ -44,6 +45,7 @@ export function ArticleRow({
 }: Props) {
   const pathname = usePathname();
   const { patchArticleTitle } = useActiveArticle();
+  const { collapseLibrary } = useLibraryPaneUi();
   const href = ROUTES.article(article.id);
   const active = pathname === href;
 
@@ -128,7 +130,7 @@ export function ArticleRow({
         e.dataTransfer.setData(ARTICLE_DRAG_MIME, article.id);
         e.dataTransfer.effectAllowed = "move";
       }}
-      className={`group flex min-w-0 items-center gap-0.5 rounded-md py-0 pl-1.5 pr-0.5 text-xs leading-tight hover:bg-muted/10 ${
+      className={`group flex min-h-9 min-w-0 items-center gap-1 rounded-md py-0.5 pl-1.5 pr-0.5 text-xs leading-tight hover:bg-muted/10 max-md:min-h-11 max-md:text-sm ${
         editing ? "" : "cursor-grab active:cursor-grabbing"
       } ${active ? "bg-muted/15" : ""} ${
         moveBusy ? "pointer-events-none opacity-50" : ""
@@ -136,7 +138,10 @@ export function ArticleRow({
     >
       {editing ? (
         <div className="flex min-w-0 flex-1 items-center gap-1">
-          <IconFileText className="size-3 shrink-0 text-accent" aria-hidden />
+          <IconFileText
+            className="size-3 shrink-0 text-accent max-md:size-3.5"
+            aria-hidden
+          />
           <div className="min-w-0 flex-1">
             <LibraryNameInput
               ref={inputRef}
@@ -164,8 +169,17 @@ export function ArticleRow({
           draggable={false}
           className="flex min-w-0 flex-1 items-center gap-1 text-foreground"
           title={article.title}
+          onClick={() => {
+            if (typeof window === "undefined") return;
+            if (window.matchMedia("(max-width: 767px)").matches) {
+              collapseLibrary();
+            }
+          }}
         >
-          <IconFileText className="size-3 shrink-0 text-accent" aria-hidden />
+          <IconFileText
+            className="size-3 shrink-0 text-accent max-md:size-3.5"
+            aria-hidden
+          />
           <span className="min-w-0 truncate">{article.title}</span>
         </Link>
       )}

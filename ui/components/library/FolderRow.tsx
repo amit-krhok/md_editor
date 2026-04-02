@@ -124,7 +124,7 @@ export function FolderRow({
   return (
     <div
       ref={rowRef}
-      className={`group flex min-w-0 items-center gap-0.5 rounded-md py-0 pl-1.5 pr-0.5 hover:bg-muted/10 ${
+      className={`group flex min-h-9 min-w-0 items-center gap-1 rounded-md py-0.5 pl-1.5 pr-0.5 hover:bg-muted/10 max-md:min-h-11 ${
         articleDragOver && canAcceptArticleDrop
           ? "bg-accent/10 ring-1 ring-accent/35 ring-inset"
           : ""
@@ -165,7 +165,9 @@ export function FolderRow({
         onClick={onToggleExpand}
       >
         <IconChevronRight
-          className={`size-3 transition-transform ${expanded ? "rotate-90" : ""}`}
+          className={`size-3 transition-transform max-md:size-3.5 ${
+            expanded ? "rotate-90" : ""
+          }`}
         />
       </button>
       <div
@@ -179,7 +181,10 @@ export function FolderRow({
           }
         }}
       >
-        <IconFolder className="size-3 shrink-0 text-accent" aria-hidden />
+        <IconFolder
+          className="size-3 shrink-0 text-accent max-md:size-3.5"
+          aria-hidden
+        />
         {editing ? (
           <div className="min-w-0 flex-1">
             <LibraryNameInput
@@ -203,7 +208,7 @@ export function FolderRow({
           </div>
         ) : (
           <span
-            className="min-w-0 flex-1 cursor-default truncate text-xs leading-tight text-foreground select-none"
+            className="min-w-0 flex-1 cursor-default truncate text-xs leading-tight text-foreground select-none max-md:text-sm"
             title={`${folder.name} — double-click to rename`}
           >
             {folder.name}

@@ -28,10 +28,12 @@ function SettingsIcon({ className }: { className?: string }) {
 type Props = {
   /** When false, only theme options are shown (e.g. guest auth pages). */
   showSignOut?: boolean;
+  triggerClassName?: string;
 };
 
 export const SettingsMenu = observer(function SettingsMenu({
   showSignOut = true,
+  triggerClassName,
 }: Props) {
   const auth = useAuthStore();
   const theme = useThemeStore();
@@ -66,7 +68,12 @@ export const SettingsMenu = observer(function SettingsMenu({
       <Button
         type="button"
         variant="ghost"
-        className="app-btn--icon !h-7 !max-h-7 !min-h-0 !min-w-7 !w-7 !max-w-7 !p-0"
+        className={[
+          "app-btn--icon !h-7 !max-h-7 !min-h-0 !min-w-7 !w-7 !max-w-7 !p-0",
+          triggerClassName ?? "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Settings"
@@ -77,7 +84,7 @@ export const SettingsMenu = observer(function SettingsMenu({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-[300] mt-1 min-w-40 rounded-md border border-border bg-surface-elevated py-1 shadow-lg"
+          className="absolute right-0 z-[300] min-w-40 rounded-md border border-border bg-surface-elevated py-1 shadow-lg max-md:bottom-full max-md:mb-2 md:mt-1"
         >
           {showSignOut && auth.user && (
             <div
