@@ -2,12 +2,13 @@
 
 import { usePathname } from "next/navigation";
 
-import { IconFileText, IconPlus } from "@/components/library/LibraryIcons";
+import { IconFileText, IconPencil, IconPlus } from "@/components/library/LibraryIcons";
 import {
   useActiveArticle,
   type ActiveArticleSnapshot,
 } from "@/components/providers/ActiveArticleContext";
 import { useLibraryPaneUi } from "@/components/providers/LibraryPaneUiContext";
+import { toggleDrawMode } from "@/lib/article-editor/toggle-draw-mode";
 import {
   OPEN_ARTICLE_SEARCH_EVENT,
   OPEN_CREATE_FILE_EVENT,
@@ -56,7 +57,13 @@ function showShare(snapshot: ActiveArticleSnapshot | null, pathname: string) {
 
 export function MobileBottomBar() {
   const pathname = usePathname() ?? "";
-  const { snapshot, setSnapshot } = useActiveArticle();
+  const {
+    snapshot,
+    setSnapshot,
+    articleEditorMode,
+    setArticleEditorMode,
+    captureDrawInsertAnchorRef,
+  } = useActiveArticle();
   const { libraryCollapsed, expandLibrary, collapseLibrary } = useLibraryPaneUi();
   const hasShare = showShare(snapshot, pathname);
   const shareSnapshot = hasShare && snapshot ? snapshot : null;
@@ -91,6 +98,27 @@ export function MobileBottomBar() {
         >
           <IconPlus className="size-4" />
         </button>
+        {shareSnapshot ? (
+          <button
+            type="button"
+            className={itemClass(articleEditorMode === "draw")}
+            aria-label={
+              articleEditorMode === "draw"
+                ? "Exit draw mode"
+                : "Draw mode"
+            }
+            aria-pressed={articleEditorMode === "draw"}
+            onClick={() =>
+              toggleDrawMode({
+                articleEditorMode,
+                setArticleEditorMode,
+                captureDrawInsertAnchorRef,
+              })
+            }
+          >
+            <IconPencil className="size-4" />
+          </button>
+        ) : null}
         {shareSnapshot ? (
           <div className="flex flex-1 justify-center">
             <ShareMenu

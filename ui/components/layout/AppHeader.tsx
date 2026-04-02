@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconCheck,
   IconChevronRight,
+  IconPencil,
 } from "@/components/library/LibraryIcons";
 import {
   formatArticleRenameError,
@@ -15,6 +16,7 @@ import {
 } from "@/components/providers/ActiveArticleContext";
 import { useLibraryPaneUi } from "@/components/providers/LibraryPaneUiContext";
 import { ROUTES } from "@/constants/routes";
+import { toggleDrawMode } from "@/lib/article-editor/toggle-draw-mode";
 import { Input } from "@/ui/Input";
 import { Spinner } from "@/ui/Spinner";
 
@@ -173,7 +175,14 @@ function ArticleTitleChip({
 
 export function AppHeader() {
   const pathname = usePathname() ?? "";
-  const { snapshot, setSnapshot, contentSaveStatus } = useActiveArticle();
+  const {
+    snapshot,
+    setSnapshot,
+    contentSaveStatus,
+    articleEditorMode,
+    setArticleEditorMode,
+    captureDrawInsertAnchorRef,
+  } = useActiveArticle();
   const { libraryCollapsed, expandLibrary } = useLibraryPaneUi();
 
   const pathMatch = pathname.match(ARTICLE_PATH_UUID_RE);
@@ -225,6 +234,37 @@ export function AppHeader() {
         <div className="flex h-8 max-h-8 shrink-0 items-center gap-1 overflow-visible">
           {showTitleChip ? (
             <ArticleSaveIndicator status={contentSaveStatus} />
+          ) : null}
+          {showTitleChip ? (
+            <button
+              type="button"
+              className={[
+                "library-toolbar-btn shrink-0 rounded-md",
+                articleEditorMode === "draw"
+                  ? "bg-accent/15 text-accent ring-1 ring-accent/35"
+                  : "",
+              ].join(" ")}
+              aria-label={
+                articleEditorMode === "draw"
+                  ? "Exit draw mode"
+                  : "Draw mode"
+              }
+              aria-pressed={articleEditorMode === "draw"}
+              title={
+                articleEditorMode === "draw"
+                  ? "Back to writing"
+                  : "Draw — insert sketches as images"
+              }
+              onClick={() =>
+                toggleDrawMode({
+                  articleEditorMode,
+                  setArticleEditorMode,
+                  captureDrawInsertAnchorRef,
+                })
+              }
+            >
+              <IconPencil className="size-3.5" />
+            </button>
           ) : null}
           {showTitleChip ? (
             <ShareMenu

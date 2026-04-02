@@ -17,6 +17,7 @@ import { trailing } from "@milkdown/kit/plugin/trailing";
 import { TextSelection } from "@milkdown/kit/prose/state";
 import { commonmark } from "@milkdown/kit/preset/commonmark";
 import { gfm } from "@milkdown/kit/preset/gfm";
+import { replaceRange } from "@milkdown/kit/utils";
 import {
   Milkdown,
   MilkdownProvider,
@@ -50,6 +51,7 @@ import {
   taskListListItemExtension,
   taskListTogglePlugin,
 } from "@/components/article/task-list-support";
+import { useActiveArticleOptional } from "@/components/providers/ActiveArticleContext";
 
 import "prosemirror-tables/style/tables.css";
 import "@milkdown/kit/prose/view/style/prosemirror.css";
@@ -135,12 +137,15 @@ function EditorSurface({
   onMarkdownChange,
   readOnly = false,
 }: Props) {
+  const activeArticle = useActiveArticleOptional();
   const [bootstrapMarkdown] = useState(() => initialMarkdown);
   const onChangeRef = useRef(onMarkdownChange);
   onChangeRef.current = onMarkdownChange;
 
   const lastFocusedIdRef = useRef<string | null>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const drawMode =
+    !readOnly && activeArticle?.articleEditorMode === "draw";
 
   useEffect(() => {
     const root = surfaceRef.current;
@@ -162,6 +167,51 @@ function EditorSurface({
   );
 
   const [loading, getEditor] = useInstance();
+
+  useEffect(() => {
+    if (readOnly || !activeArticle) {
+      if (activeArticle) {
+        activeArticle.captureDrawInsertAnchorRef.current = null;
+        activeArticle.insertMarkdownAtDrawAnchorRef.current = null;
+      }
+      return;
+    }
+    if (loading) return;
+
+    const {
+      drawInsertAnchorRef,
+      captureDrawInsertAnchorRef,
+      insertMarkdownAtDrawAnchorRef,
+    } = activeArticle;
+
+    captureDrawInsertAnchorRef.current = () => {
+      getEditor()?.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        const { from, to } = view.state.selection;
+        drawInsertAnchorRef.current = { from, to };
+      });
+    };
+
+    insertMarkdownAtDrawAnchorRef.current = (markdown: string) => {
+      getEditor()?.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        const anchor = drawInsertAnchorRef.current;
+        const range = anchor ?? {
+          from: view.state.selection.from,
+          to: view.state.selection.to,
+        };
+        const md = markdown.endsWith("\n") ? markdown : `${markdown}\n\n`;
+        replaceRange(md, range)(ctx);
+        drawInsertAnchorRef.current = null;
+        view.focus();
+      });
+    };
+
+    return () => {
+      captureDrawInsertAnchorRef.current = null;
+      insertMarkdownAtDrawAnchorRef.current = null;
+    };
+  }, [readOnly, loading, getEditor, activeArticle]);
 
   useEffect(() => {
     if (readOnly) return;
@@ -189,7 +239,14 @@ function EditorSurface({
   }, [articleId, loading, getEditor, readOnly]);
 
   return (
-    <div ref={surfaceRef} className="article-md-editor w-full">
+    <div
+      ref={surfaceRef}
+      className={[
+        "article-md-editor w-full transition-opacity duration-150",
+        drawMode ? "pointer-events-none select-none opacity-[0.38]" : "",
+      ].join(" ")}
+      aria-hidden={drawMode || undefined}
+    >
       <label className="sr-only" htmlFor={`article-editor-${articleId}`}>
         Article content
       </label>

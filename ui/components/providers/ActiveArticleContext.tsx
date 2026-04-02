@@ -25,6 +25,8 @@ export type ActiveArticleSnapshot = {
 
 export type ArticleContentSaveStatus = "idle" | "saving" | "saved";
 
+export type ArticleEditorMode = "write" | "draw";
+
 type Ctx = {
   snapshot: ActiveArticleSnapshot | null;
   setSnapshot: Dispatch<SetStateAction<ActiveArticleSnapshot | null>>;
@@ -38,6 +40,16 @@ type Ctx = {
   setContentSaveStatus: Dispatch<SetStateAction<ArticleContentSaveStatus>>;
   /** ArticleWorkspace keeps this in sync for share / export. */
   openArticleMarkdownRef: React.MutableRefObject<string>;
+  articleEditorMode: ArticleEditorMode;
+  setArticleEditorMode: Dispatch<SetStateAction<ArticleEditorMode>>;
+  /** ProseMirror range captured when entering draw mode (insert replaces this span). */
+  drawInsertAnchorRef: React.MutableRefObject<{ from: number; to: number } | null>;
+  /** Set by ArticleMarkdownEditor: snapshot current selection into drawInsertAnchorRef. */
+  captureDrawInsertAnchorRef: React.MutableRefObject<(() => void) | null>;
+  /** Set by ArticleMarkdownEditor: insert markdown at anchor (or current selection). */
+  insertMarkdownAtDrawAnchorRef: React.MutableRefObject<
+    ((markdown: string) => void) | null
+  >;
 };
 
 const ActiveArticleContext = createContext<Ctx | null>(null);
@@ -52,8 +64,15 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
   const [snapshot, setSnapshot] = useState<ActiveArticleSnapshot | null>(null);
   const [contentSaveStatus, setContentSaveStatus] =
     useState<ArticleContentSaveStatus>("idle");
+  const [articleEditorMode, setArticleEditorMode] =
+    useState<ArticleEditorMode>("write");
   const syncLibraryTitles = useRef<(id: string, title: string) => void>(() => {});
   const openArticleMarkdownRef = useRef<string>("");
+  const drawInsertAnchorRef = useRef<{ from: number; to: number } | null>(null);
+  const captureDrawInsertAnchorRef = useRef<(() => void) | null>(null);
+  const insertMarkdownAtDrawAnchorRef = useRef<
+    ((markdown: string) => void) | null
+  >(null);
 
   const patchArticleTitle = useCallback(
     async (articleId: string, title: string) => {
@@ -91,8 +110,13 @@ export const ActiveArticleProvider = observer(function ActiveArticleProvider({
       contentSaveStatus,
       setContentSaveStatus,
       openArticleMarkdownRef,
+      articleEditorMode,
+      setArticleEditorMode,
+      drawInsertAnchorRef,
+      captureDrawInsertAnchorRef,
+      insertMarkdownAtDrawAnchorRef,
     }),
-    [snapshot, patchArticleTitle, contentSaveStatus],
+    [snapshot, patchArticleTitle, contentSaveStatus, articleEditorMode],
   );
 
   return (
@@ -108,6 +132,11 @@ export function useActiveArticle(): Ctx {
     throw new Error("useActiveArticle must be used within ActiveArticleProvider");
   }
   return ctx;
+}
+
+/** For surfaces that may render outside `ActiveArticleProvider` (e.g. public read-only article). */
+export function useActiveArticleOptional(): Ctx | null {
+  return useContext(ActiveArticleContext);
 }
 
 export function formatArticleRenameError(e: unknown): string {

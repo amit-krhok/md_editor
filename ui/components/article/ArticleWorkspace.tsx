@@ -3,6 +3,7 @@
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ArticleDrawPanel } from "@/components/article/ArticleDrawPanel";
 import { ArticleMarkdownEditor } from "@/components/article/ArticleMarkdownEditor";
 import { getArticle, updateArticle } from "@/lib/api/articles";
 import { ApiError } from "@/lib/api/http";
@@ -28,6 +29,8 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
     setSnapshot,
     setContentSaveStatus,
     openArticleMarkdownRef,
+    articleEditorMode,
+    setArticleEditorMode,
   } = useActiveArticle();
   const [article, setArticle] = useState<ArticlePublic | null>(null);
   const [content, setContent] = useState("");
@@ -95,6 +98,10 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
       cancelled = true;
     };
   }, [token, articleId, clearSavedIdleTimer, setContentSaveStatus]);
+
+  useEffect(() => {
+    setArticleEditorMode("write");
+  }, [articleId, setArticleEditorMode]);
 
   useEffect(() => {
     return () => {
@@ -216,6 +223,7 @@ export const ArticleWorkspace = observer(function ArticleWorkspace({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
+      {articleEditorMode === "draw" ? <ArticleDrawPanel /> : null}
       <ArticleMarkdownEditor
         articleId={articleId}
         initialMarkdown={content}
